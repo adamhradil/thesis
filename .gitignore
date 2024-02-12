@@ -1,0 +1,5 @@
+*.zip
+templates/
+*.pyc
+venv/
+.vscode/
