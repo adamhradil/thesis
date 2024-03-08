@@ -2,7 +2,6 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring, missing-class-docstring, unused-argument
 
 import json
-from enum import Enum
 import sys
 
 from scrapy import signals
@@ -38,6 +37,39 @@ def calculate_distance(address1, address2):
         return geodesic(coord1, coord2).kilometers
     else:
         return None
+
+
+def clean_listings(listings):
+    cleaned_listings = []
+    seen_listings = set()
+
+    for listing in listings:
+        # Remove duplicates
+        if str(listing) in seen_listings:
+            continue
+        seen_listings.add(str(listing))
+
+        # Handle missing values
+        for attr, value in listing.__dict__.items():
+            if value == "":
+                listing.__dict__[attr] = None  # or some default value
+
+        # Validate data types
+        # This is just an example for the 'area' attribute
+        if listing.area is not None:
+            try:
+                listing.area = int(listing.area)
+            except ValueError:
+                continue  # skip this listing
+
+        # Normalize text
+        if listing.description is not None:
+            listing.description = listing.description.lower().strip()
+
+        cleaned_listings.append(listing)
+
+    return cleaned_listings
+
 
 def balcony_filter(listings: list[Listing]):
     l1 = []
@@ -114,6 +146,8 @@ if __name__ == "__main__":
     )
 
     balcony_filter(listings)
+
+    listings = clean_listings(listings=listings)
 
     db = DatabaseWrapper('listings.db')
     db.create_table()
