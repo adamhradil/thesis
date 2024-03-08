@@ -11,11 +11,14 @@ from scrapy.exporters import JsonItemExporter
 
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
+from database_wrapper import DatabaseWrapper
 
 from bezrealitky_scraper.bezrealitky.spiders.search_flats import SearchFlatsSpider
+from listing import Disposition, UserPreferences, Listing
 
 # from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 
+items = []
 
 
 def get_coordinates(address):
@@ -43,8 +46,6 @@ def item_scraped(item):
 
 
 if __name__ == "__main__":
-
-    items = []
 
     CRAWL = False
     FILE = "bezrealitky_items.json"
@@ -90,5 +91,13 @@ if __name__ == "__main__":
         max_price=30000,
         balcony=True,
     )
+    db = DatabaseWrapper('listings.db')
+    db.create_table()
+    for listing in listings:
+        if db.get_listing(listing.id):
+            continue
+        db.insert_listing(listing)
+        print(f"found a new listing: {listing.id}")
+    db.close_conn()
 
     sys.exit(0)

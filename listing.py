@@ -42,32 +42,59 @@ class UserPreferences:
 
 
 class Listing:
-    def __init__(self, data: dict):
-        self.address: str = data.get("address", "")
-        self.area: int = data.get("area", "")
-        self.available_from: str = data.get("available_from", "")
-        self.description: str = data.get("description", "")
-        self.disposition: str = data.get("disposition", "")
-        self.floor = data.get("floor", "")
-        self.furnished = data.get("furnished", "")
-        self.id = data.get("id", "")
-        self.penb = data.get("penb", "")
-        self.rent = data.get("rent", "")
-        self.security_deposit = data.get("security_deposit", "")
-        self.service_fees = data.get("service_fees", "")
-        self.status = data.get("status", "")
-        self.type = data.get("type", "")
-        self.url = data.get("url", "")
-        self.balcony = data.get("balcony", "")
-        self.cellar = data.get("cellar", "")
-        self.front_garden = data.get("front_garden", "")
-        self.terrace = data.get("terrace", "")
-        self.elevator = data.get("elevator", "")
-        self.parking = data.get("parking", "")
-        self.garage = data.get("garage", "")
-        self.pets = data.get("pets", "")
-        self.loggie = data.get("loggie", "")
-        self.public_transport = data.get("public_transport", "")
+    def __init__(self, data: dict | tuple):
+        # TODO: fix this attrocity
+        if isinstance(data, tuple):
+            self.id = data[0]
+            self.address = data[1]
+            self.area = data[2]
+            self.available_from = data[3]
+            self.description = data[4]
+            self.disposition = data[5]
+            self.floor = data[6]
+            self.furnished = data[7]
+            self.rent = data[8]
+            self.security_deposit = data[9]
+            self.service_fees = data[10]
+            self.status = data[11]
+            self.type = data[12]
+            self.url = data[13]
+            self.balcony = data[14]
+            self.cellar = data[15]
+            self.front_garden = data[16]
+            self.terrace = data[17]
+            self.elevator = data[18]
+            self.parking = data[19]
+            self.garage = data[20]
+            self.pets = data[21]
+            self.loggie = data[22]
+            self.public_transport = data[23]
+        else:
+            self.address: str = data.get("address", "")
+            self.area: int = data.get("area", "")
+            self.available_from: str = data.get("available_from", "")
+            self.description: str = data.get("description", "")
+            self.disposition: str = data.get("disposition", "")
+            self.floor = data.get("floor", "")
+            self.furnished = data.get("furnished", "")
+            self.id = data.get("id", "")
+            self.penb = data.get("penb", "")
+            self.rent = data.get("rent", "")
+            self.security_deposit = data.get("security_deposit", "")
+            self.service_fees = data.get("service_fees", "")
+            self.status = data.get("status", "")
+            self.type = data.get("type", "")
+            self.url = data.get("url", "")
+            self.balcony = data.get("balcony", "")
+            self.cellar = data.get("cellar", "")
+            self.front_garden = data.get("front_garden", "")
+            self.terrace = data.get("terrace", "")
+            self.elevator = data.get("elevator", "")
+            self.parking = data.get("parking", "")
+            self.garage = data.get("garage", "")
+            self.pets = data.get("pets", "")
+            self.loggie = data.get("loggie", "")
+            self.public_transport = data.get("public_transport", "")
 
     def __eq__(self, other):
         if isinstance(other, Listing):
