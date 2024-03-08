@@ -39,6 +39,27 @@ def calculate_distance(address1, address2):
     else:
         return None
 
+def balcony_filter(listings: list[Listing]):
+    l1 = []
+    l2 = []
+    l3 = []
+    l4 = []
+    for listing in listings:
+        if "balk" in listing.description.lower():
+            l1.append(listing)
+        if listing.balcony:
+            l2.append(listing)
+        if "balk" in listing.description.lower() and listing.balcony:
+            l3.append(listing)
+        if "balk" in listing.description.lower() and not listing.balcony:
+            l4.append(listing)
+
+    print(f"{len(l1)} listings contain balk in description")
+    print(f"{len(l2)} listings contain contain balk in the table")
+    print(f"{len(l3)} listings contain contain balk in description and in table")
+    print(f"{len(l4)} listings contain contain balk in description and not in table")
+    return
+
 
 def item_scraped(item):
     print(item['url'])
@@ -91,6 +112,9 @@ if __name__ == "__main__":
         max_price=30000,
         balcony=True,
     )
+
+    balcony_filter(listings)
+
     db = DatabaseWrapper('listings.db')
     db.create_table()
     for listing in listings:
