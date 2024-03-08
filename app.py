@@ -3,6 +3,7 @@
 
 import json
 from enum import Enum
+import sys
 
 from scrapy import signals
 from scrapy.crawler import CrawlerProcess
@@ -218,6 +219,7 @@ def calculate_distance(address1, address2):
 
 
 def item_scraped(item):
+    print(item['url'])
     items.append(item)
 
 
@@ -230,7 +232,8 @@ if __name__ == "__main__":
     POI = "NTK Praha"
 
     if CRAWL:
-        process = CrawlerProcess()
+        process = CrawlerProcess(settings={"LOG_LEVEL": "INFO"})
+
         # crawler = process.create_crawler(SrealitySpider)
         # crawler.signals.connect(item_scraped, signal=signals.item_scraped)
         crawler2 = process.create_crawler(SearchFlatsSpider)
@@ -269,4 +272,4 @@ if __name__ == "__main__":
         balcony=True,
     )
 
-    print("test")
+    sys.exit(0)
