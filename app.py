@@ -1,18 +1,20 @@
-# TODO: vvv
 # pylint: disable=missing-module-docstring, missing-function-docstring, missing-class-docstring, unused-argument
 
 import json
 import sys
+import time
 
-from scrapy import signals
-from scrapy.crawler import CrawlerProcess
-from scrapy.exporters import JsonItemExporter
+from scrapy import signals  # type: ignore
+from scrapy.crawler import CrawlerProcess  # type: ignore
+from scrapy.exporters import JsonItemExporter  # type: ignore
 
-from geopy.geocoders import Nominatim
-from geopy.distance import geodesic
+from geopy.geocoders import Nominatim  # type: ignore
+from geopy.distance import geodesic  # type: ignore
 from database_wrapper import DatabaseWrapper
 
 from bezrealitky_scraper.bezrealitky.spiders.search_flats import SearchFlatsSpider
+from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
+
 from listing import Disposition, UserPreferences, Listing
 
 # from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
@@ -24,7 +26,7 @@ def get_coordinates(address):
     geolocator = Nominatim(user_agent="distance_calculator")
     location = geolocator.geocode(address)
     if location:
-        return (location.latitude, location.longitude)
+        return (location.latitude, location.longitude)  # type: ignore
     else:
         return None
 
@@ -76,15 +78,15 @@ def balcony_filter(listings: list[Listing]):
     l2 = []
     l3 = []
     l4 = []
-    for listing in listings:
-        if "balk" in listing.description.lower():
-            l1.append(listing)
-        if listing.balcony:
-            l2.append(listing)
-        if "balk" in listing.description.lower() and listing.balcony:
-            l3.append(listing)
-        if "balk" in listing.description.lower() and not listing.balcony:
-            l4.append(listing)
+    for advert in listings:
+        if "balk" in advert.description.lower():
+            l1.append(advert)
+        if advert.balcony:
+            l2.append(advert)
+        if "balk" in advert.description.lower() and advert.balcony:
+            l3.append(advert)
+        if "balk" in advert.description.lower() and not advert.balcony:
+            l4.append(advert)
 
     print(f"{len(l1)} listings contain balk in description")
     print(f"{len(l2)} listings contain contain balk in the table")
@@ -94,24 +96,36 @@ def balcony_filter(listings: list[Listing]):
 
 
 def item_scraped(item):
-    print(item['url'])
+    print(item["url"])
     items.append(item)
 
 
 if __name__ == "__main__":
 
-    CRAWL = False
-    FILE = "bezrealitky_items.json"
+    CRAWL = True
+    # FILE = "bezrealitky_items.json"
+    FILE = "sreality_items.json"
     POI = "NTK Praha"
+    start = 0.0
+    end = 0.0
 
     if CRAWL:
-        process = CrawlerProcess(settings={"LOG_LEVEL": "INFO"})
+        process = CrawlerProcess(
+            settings={
+                "LOG_LEVEL": "INFO",
+                "DEFAULT_REQUEST_HEADERS": {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36",
+                },
+            }
+        )
 
-        # crawler = process.create_crawler(SrealitySpider)
-        # crawler.signals.connect(item_scraped, signal=signals.item_scraped)
-        crawler2 = process.create_crawler(SearchFlatsSpider)
+        start = time.time()
+
+        crawler = process.create_crawler(SearchFlatsSpider)
+        crawler.signals.connect(item_scraped, signal=signals.item_scraped)
+        crawler2 = process.create_crawler(SrealitySpider)
         crawler2.signals.connect(item_scraped, signal=signals.item_scraped)
-        # process.crawl(crawler)
+        process.crawl(crawler)
         process.crawl(crawler2)
         process.start()
 
@@ -121,6 +135,8 @@ if __name__ == "__main__":
             for i in items:
                 exporter.export_item(i)
             exporter.finish_exporting()
+
+        end = time.time()
     else:
         with open(FILE, "r", encoding="utf-8") as f:
             items = json.load(f)
@@ -149,7 +165,7 @@ if __name__ == "__main__":
 
     listings = clean_listings(listings=listings)
 
-    db = DatabaseWrapper('listings.db')
+    db = DatabaseWrapper("listings.db")
     db.create_table()
     for listing in listings:
         if db.get_listing(listing.id):
@@ -157,5 +173,8 @@ if __name__ == "__main__":
         db.insert_listing(listing)
         print(f"found a new listing: {listing.id}")
     db.close_conn()
+
+    if start != 0.0 and end != 0.0:
+        print(f"crawling finished in {end - start}s")
 
     sys.exit(0)
