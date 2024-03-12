@@ -69,6 +69,7 @@ class Listing:
             self.pets = data[21]
             self.loggie = data[22]
             self.public_transport = data[23]
+            self.gps = data[24]
         else:
             self.address: str = data.get("address", "")
             self.area: int = data.get("area", "")
@@ -95,6 +96,7 @@ class Listing:
             self.pets = data.get("pets", "")
             self.loggie = data.get("loggie", "")
             self.public_transport = data.get("public_transport", "")
+            self.gps = data.get("gps", "")
 
     def __eq__(self, other):
         if isinstance(other, Listing):
@@ -126,6 +128,7 @@ class Listing:
                 Pets: {self.pets}
                 Loggie: {self.loggie}
                 Public Transport: {self.public_transport}
+                GPS: {self.public_transport}
                 """
 
     def is_relevant(self, user_preferences: UserPreferences):

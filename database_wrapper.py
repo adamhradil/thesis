@@ -41,7 +41,9 @@ class DatabaseWrapper:
                     garage text,
                     pets text,
                     loggie text,
-                    public_transport text
+                    public_transport text,
+                    gps_lat text,
+                    gps_lon text
                 );
             """
             )
@@ -56,8 +58,8 @@ class DatabaseWrapper:
                   description,disposition,floor,furnished,rent,
                   security_deposit,service_fees,status,type,url,
                   balcony,cellar,front_garden,terrace,elevator,
-                  parking,garage,pets,loggie,public_transport)
-                  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) """
+                  parking,garage,pets,loggie,public_transport,gps_lat,gps_lon)
+                  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) """
         cur = self.conn.cursor()
         cur.execute(
             sql,
@@ -86,6 +88,8 @@ class DatabaseWrapper:
                 listing.pets,
                 listing.loggie,
                 listing.public_transport,
+                listing.gps[0],
+                listing.gps[1],
             ),
         )
         self.conn.commit()
@@ -142,7 +146,9 @@ class DatabaseWrapper:
                       garage = ?,
                       pets = ?,
                       loggie = ?,
-                      public_transport = ?
+                      public_transport = ?,
+                      gps_lat = ?
+                      gps_lon = ?
                   WHERE id = ?"""
         cur = self.conn.cursor()
         cur.execute(
@@ -171,7 +177,8 @@ class DatabaseWrapper:
                 listing.pets,
                 listing.loggie,
                 listing.public_transport,
-                listing.id,
+                listing.gps[0],
+                listing.gps[1],
             ),
         )
         self.conn.commit()
