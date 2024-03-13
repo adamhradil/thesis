@@ -1,5 +1,6 @@
 from sqlite3 import Error, connect
 from listing import Listing
+import pandas as pd
 
 
 class DatabaseWrapper:
@@ -49,6 +50,17 @@ class DatabaseWrapper:
             )
         except Error as e:
             print(e)
+
+    def verify_table_columns(self):
+        """
+        Verify that the table columns are correct
+        """
+        c = self.conn.cursor()
+        c.execute("PRAGMA table_info(listings)")
+        columns = c.fetchall()
+        if len(columns) != 25:
+            return False
+        return True
 
     def insert_listing(self, listing):
         """
@@ -182,6 +194,10 @@ class DatabaseWrapper:
             ),
         )
         self.conn.commit()
+        
+    def get_df(self):
+        return pd.read_sql_query("SELECT * FROM listings", self.conn)
+
 
     def close_conn(self):
         if self.conn:

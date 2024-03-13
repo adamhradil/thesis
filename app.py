@@ -8,6 +8,8 @@ from scrapy import signals  # type: ignore
 from scrapy.crawler import CrawlerProcess  # type: ignore
 from scrapy.exporters import JsonItemExporter  # type: ignore
 
+import pandas as pd
+
 from geopy.geocoders import Nominatim  # type: ignore
 from geopy.distance import geodesic  # type: ignore
 from database_wrapper import DatabaseWrapper
@@ -104,7 +106,8 @@ if __name__ == "__main__":
 
     CRAWL = True
     # FILE = "bezrealitky_items.json"
-    FILE = "sreality_items.json"
+    # FILE = "sreality_items.json"
+    FILE = "all_items.json"
     POI = "NTK Praha"
     start = 0.0
     end = 0.0
@@ -167,11 +170,15 @@ if __name__ == "__main__":
 
     db = DatabaseWrapper("listings.db")
     db.create_table()
+    # if not db.verify_table_columns():
+    #     print("Table columns are not correct")
+    #     sys.exit(1)
     for listing in listings:
         if db.get_listing(listing.id):
             continue
         db.insert_listing(listing)
         print(f"found a new listing: {listing.id}")
+    df = db.get_df()
     db.close_conn()
 
     if start != 0.0 and end != 0.0:
