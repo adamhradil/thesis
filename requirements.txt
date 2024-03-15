@@ -2,3 +2,5 @@ geopy==2.4.1
 itemadapter==0.8.0
 PyDispatcher==2.0.7
 scrapy==2.11.1
+ipykernel
+pandas
