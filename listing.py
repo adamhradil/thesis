@@ -1,5 +1,5 @@
 from enum import Enum
-
+import scrapy
 
 class UserPreferences:
     def __init__(
@@ -42,65 +42,26 @@ class UserPreferences:
 
 
 class Listing:
-    def __init__(self, data, date_created=None, date_updated=None):
-        # TODO: fix this attrocity
+    def __init__(self, data=None):
+        attributes = [
+            "id", "address", "area", "available_from", "description", "disposition",
+            "floor", "furnished", "rent", "security_deposit", "service_fees", "status",
+            "type", "url", "balcony", "cellar", "front_garden", "terrace", "elevator",
+            "parking", "garage", "pets", "loggie", "public_transport", "gps_lat", "gps_lon", "created",
+            "updated", "last_seen"
+        ]
+
+        attributes.sort()
+
+        if data is None:
+            for attr in attributes:
+                setattr(self, attr, None)
         if isinstance(data, tuple):
-            self.id = data[0]
-            self.address = data[1]
-            self.area = data[2]
-            self.available_from = data[3]
-            self.description = data[4]
-            self.disposition = data[5]
-            self.floor = data[6]
-            self.furnished = data[7]
-            self.rent = data[8]
-            self.security_deposit = data[9]
-            self.service_fees = data[10]
-            self.status = data[11]
-            self.type = data[12]
-            self.url = data[13]
-            self.balcony = data[14]
-            self.cellar = data[15]
-            self.front_garden = data[16]
-            self.terrace = data[17]
-            self.elevator = data[18]
-            self.parking = data[19]
-            self.garage = data[20]
-            self.pets = data[21]
-            self.loggie = data[22]
-            self.public_transport = data[23]
-            self.gps = data[24],
-            self.date_created = data[25],
-            self.date_updated = data[26],
-        else:
-            self.address: str = data.get("address", "")
-            self.area: int = data.get("area", "")
-            self.available_from: str = data.get("available_from", "")
-            self.description: str = data.get("description", "")
-            self.disposition: str = data.get("disposition", "")
-            self.floor = data.get("floor", "")
-            self.furnished = data.get("furnished", "")
-            self.id = data.get("id", "")
-            self.penb = data.get("penb", "")
-            self.rent = data.get("rent", "")
-            self.security_deposit = data.get("security_deposit", "")
-            self.service_fees = data.get("service_fees", "")
-            self.status = data.get("status", "")
-            self.type = data.get("type", "")
-            self.url = data.get("url", "")
-            self.balcony = data.get("balcony", "")
-            self.cellar = data.get("cellar", "")
-            self.front_garden = data.get("front_garden", "")
-            self.terrace = data.get("terrace", "")
-            self.elevator = data.get("elevator", "")
-            self.parking = data.get("parking", "")
-            self.garage = data.get("garage", "")
-            self.pets = data.get("pets", "")
-            self.loggie = data.get("loggie", "")
-            self.public_transport = data.get("public_transport", "")
-            self.gps = data.get("gps", "")
-            self.date_created = date_created
-            self.date_updated = date_updated
+            for i, attr in enumerate(attributes):
+                setattr(self, attr, data[i])
+        elif isinstance(data, scrapy.Item) or isinstance(data, dict):
+            for attr in attributes:
+                setattr(self, attr, data.get(attr, ""))
 
     def __eq__(self, other):
         if isinstance(other, Listing):
@@ -108,34 +69,7 @@ class Listing:
         return False
 
     def __str__(self):
-        return f"""Room Offer ID: {self.id}
-                Address: {self.address}
-                Area: {self.area} sq.m
-                Available from: {self.available_from}
-                Description: {self.description}
-                Disposition: {self.disposition}
-                Floor: {self.floor}
-                Furnished: {self.furnished}
-                Rent: {self.rent}
-                Security Deposit: {self.security_deposit}
-                Service Fees: {self.service_fees}
-                Status: {self.status}
-                Type: {self.type}
-                URL: {self.url}
-                Balcony: {self.balcony}
-                Cellar: {self.cellar}
-                Front Garden: {self.front_garden}
-                Terrace: {self.terrace}
-                Elevator: {self.elevator}
-                Parking: {self.parking}
-                Garage: {self.garage}
-                Pets: {self.pets}
-                Loggie: {self.loggie}
-                Public Transport: {self.public_transport}
-                GPS: {self.public_transport}
-                Date Created: {self.date_created}
-                Date Updated: {self.date_updated}
-                """
+        return str(self.__dict__)
 
     def is_relevant(self, user_preferences: UserPreferences):
         if (
