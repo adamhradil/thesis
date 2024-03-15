@@ -42,7 +42,7 @@ class UserPreferences:
 
 
 class Listing:
-    def __init__(self, data: dict | tuple):
+    def __init__(self, data, date_created=None, date_updated=None):
         # TODO: fix this attrocity
         if isinstance(data, tuple):
             self.id = data[0]
@@ -69,7 +69,9 @@ class Listing:
             self.pets = data[21]
             self.loggie = data[22]
             self.public_transport = data[23]
-            self.gps = data[24]
+            self.gps = data[24],
+            self.date_created = data[25],
+            self.date_updated = data[26],
         else:
             self.address: str = data.get("address", "")
             self.area: int = data.get("area", "")
@@ -97,6 +99,8 @@ class Listing:
             self.loggie = data.get("loggie", "")
             self.public_transport = data.get("public_transport", "")
             self.gps = data.get("gps", "")
+            self.date_created = date_created
+            self.date_updated = date_updated
 
     def __eq__(self, other):
         if isinstance(other, Listing):
@@ -129,6 +133,8 @@ class Listing:
                 Loggie: {self.loggie}
                 Public Transport: {self.public_transport}
                 GPS: {self.public_transport}
+                Date Created: {self.date_created}
+                Date Updated: {self.date_updated}
                 """
 
     def is_relevant(self, user_preferences: UserPreferences):

@@ -1,7 +1,7 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring, missing-class-docstring, unused-argument
 
+import datetime
 import json
-import sys
 import time
 
 from scrapy import signals  # type: ignore
@@ -112,6 +112,8 @@ if __name__ == "__main__":
     start = 0.0
     end = 0.0
 
+    crawl_time = datetime.datetime.now()
+
     if CRAWL:
         process = CrawlerProcess(
             settings={
@@ -174,14 +176,18 @@ if __name__ == "__main__":
     #     print("Table columns are not correct")
     #     sys.exit(1)
     for listing in listings:
-        if db.get_listing(listing.id):
+        found_listing = db.get_listing(listing.id)
+        if found_listing:
+            if found_listing != listing:
+                print(f"listing {listing.id} has changed")
+                print(f"old: {found_listing}")
+                print(f"new: {listing}")
+                db.update_listing(listing, crawl_time)
             continue
-        db.insert_listing(listing)
+        db.insert_listing(listing=listing, date_created=crawl_time)
         print(f"found a new listing: {listing.id}")
     df = db.get_df()
     db.close_conn()
 
     if start != 0.0 and end != 0.0:
         print(f"crawling finished in {end - start}s")
-
-    sys.exit(0)

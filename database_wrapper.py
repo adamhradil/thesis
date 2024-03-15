@@ -44,7 +44,9 @@ class DatabaseWrapper:
                     loggie text,
                     public_transport text,
                     gps_lat text,
-                    gps_lon text
+                    gps_lon text,
+                    date_created text,
+                    date_updated text
                 );
             """
             )
@@ -62,7 +64,7 @@ class DatabaseWrapper:
             return False
         return True
 
-    def insert_listing(self, listing):
+    def insert_listing(self, listing, date_created):
         """
         Insert a Listing into the listings table
         """
@@ -70,8 +72,8 @@ class DatabaseWrapper:
                   description,disposition,floor,furnished,rent,
                   security_deposit,service_fees,status,type,url,
                   balcony,cellar,front_garden,terrace,elevator,
-                  parking,garage,pets,loggie,public_transport,gps_lat,gps_lon)
-                  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) """
+                  parking,garage,pets,loggie,public_transport,gps_lat,gps_lon,date_created,date_updated)
+                  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) """
         cur = self.conn.cursor()
         cur.execute(
             sql,
@@ -102,6 +104,8 @@ class DatabaseWrapper:
                 listing.public_transport,
                 listing.gps[0],
                 listing.gps[1],
+                date_created,
+                None,
             ),
         )
         self.conn.commit()
@@ -131,7 +135,7 @@ class DatabaseWrapper:
         cur.execute(sql, (listing_id,))
         self.conn.commit()
 
-    def update_listing(self, listing):
+    def update_listing(self, listing, date_updated):
         """
         Update a Listing in the listings table
         """
@@ -161,6 +165,8 @@ class DatabaseWrapper:
                       public_transport = ?,
                       gps_lat = ?
                       gps_lon = ?
+                      date_created = ?
+                      date_updated = ?
                   WHERE id = ?"""
         cur = self.conn.cursor()
         cur.execute(
@@ -191,6 +197,8 @@ class DatabaseWrapper:
                 listing.public_transport,
                 listing.gps[0],
                 listing.gps[1],
+                listing.date_created,
+                date_updated,
             ),
         )
         self.conn.commit()
