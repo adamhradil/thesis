@@ -33,6 +33,10 @@ class DatabaseWrapper:
         placeholders = ','.join(['?' for _ in columns])
         sql = f"INSERT INTO listings({','.join(columns)}) VALUES({placeholders}) "
         cur = self.conn.cursor()
+        if date_created is not None:
+            listing.created = date_created
+            listing.last_seen = date_created
+            listing.updated = date_created
         cur.execute(sql, [getattr(listing, attr) for attr in columns])
         self.conn.commit()
         return cur.lastrowid
@@ -61,13 +65,19 @@ class DatabaseWrapper:
         cur.execute(sql, (listing_id,))
         self.conn.commit()
 
-    def update_listing(self, listing, date_updated):
+    def update_listing(self, listing, created=None, date_updated=None, last_seen=None):
         """
         Update a Listing in the listings table
         """
         attributes = [attr for attr in dir(listing) if not callable(getattr(listing, attr)) and not attr.startswith('__')]
         sql = f"UPDATE listings SET {','.join([f'{attr}=?' for attr in attributes if attr != 'id'])} WHERE id=?"
         cur = self.conn.cursor()
+        if date_updated is not None:
+            listing.updated = date_updated
+        if last_seen is not None:
+            listing.last_seen = last_seen
+        if created is not None:
+            listing.created = created
         attribute_values = [getattr(listing, attr) for attr in attributes if attr != 'id']
         attribute_values.append(listing.id)
         cur.execute(sql, attribute_values)

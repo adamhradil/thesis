@@ -180,9 +180,9 @@ if __name__ == "__main__":
         if found_listing:
             if found_listing != listing:
                 print(f"listing {listing.id} has changed")
-                print(f"old: {found_listing}")
-                print(f"new: {listing}")
-                db.update_listing(listing, crawl_time)
+                db.update_listing(listing, created=found_listing.created, date_updated=crawl_time, last_seen=crawl_time)
+            else:
+                db.update_listing(listing, created=found_listing.created, date_updated=found_listing.updated, last_seen=crawl_time)
             continue
         db.insert_listing(listing=listing, date_created=crawl_time)
         print(f"found a new listing: {listing.id}")

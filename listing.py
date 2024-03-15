@@ -41,16 +41,41 @@ class UserPreferences:
         self.front_garden: bool | None = front_garden
 
 
+attributes = [
+    "id",
+    "address",
+    "area",
+    "available_from",
+    "description",
+    "disposition",
+    "floor",
+    "furnished",
+    "rent",
+    "security_deposit",
+    "service_fees",
+    "status",
+    "type",
+    "url",
+    "balcony",
+    "cellar",
+    "front_garden",
+    "terrace",
+    "elevator",
+    "parking",
+    "garage",
+    "pets",
+    "loggie",
+    "public_transport",
+    "gps_lat",
+    "gps_lon",
+    "created",
+    "updated",
+    "last_seen",
+]
+
+
 class Listing:
     def __init__(self, data=None):
-        attributes = [
-            "id", "address", "area", "available_from", "description", "disposition",
-            "floor", "furnished", "rent", "security_deposit", "service_fees", "status",
-            "type", "url", "balcony", "cellar", "front_garden", "terrace", "elevator",
-            "parking", "garage", "pets", "loggie", "public_transport", "gps_lat", "gps_lon", "created",
-            "updated", "last_seen"
-        ]
-
         attributes.sort()
 
         if data is None:
@@ -65,7 +90,12 @@ class Listing:
 
     def __eq__(self, other):
         if isinstance(other, Listing):
-            return self.__dict__ == other.__dict__
+            excluded_attributes = ["last_seen", "updated", "created"]
+            return all(
+                getattr(self, attr) == getattr(other, attr)
+                for attr in attributes
+                if attr not in excluded_attributes
+            )
         return False
 
     def __str__(self):
