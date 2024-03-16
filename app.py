@@ -177,7 +177,11 @@ if __name__ == "__main__":
         found_listing = db.get_listing(listing.id)
         if found_listing:
             if found_listing != listing and datetime.datetime.strptime(found_listing.updated, "%Y-%m-%d %H:%M:%S.%f") < crawl_time:
-                print(f"listing {listing.id} has changed")
+                print(f"listing {listing.id} has changed:", end=" ")
+                for attr, value in listing.__dict__.items():
+                    if found_listing.__dict__[attr] != value and attr != "updated" and attr != "last_seen" and attr != "created":
+                        print(f"{attr} has changed from {found_listing.__dict__[attr]} to {value}")
+                print("")
                 db.update_listing(listing, created=found_listing.created, date_updated=crawl_time, last_seen=crawl_time)
             else:
                 db.update_listing(listing, created=found_listing.created, date_updated=found_listing.updated, last_seen=crawl_time)
