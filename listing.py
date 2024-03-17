@@ -20,7 +20,7 @@ class UserPreferences:
         terrace=None,
         loggia=None,
         cellar=None,
-        front_garden=None,
+        garden=None,
     ) -> None:
         self.dispositions: list[Disposition] | None = dispositions
         self.weight_area: float | None = weight_area
@@ -38,7 +38,7 @@ class UserPreferences:
         self.terrace: bool | None = terrace
         self.loggia: bool | None = loggia
         self.cellar: bool | None = cellar
-        self.front_garden: bool | None = front_garden
+        self.garden: bool | None = garden
 
 
 attributes = [
@@ -58,7 +58,7 @@ attributes = [
     "url",
     "balcony",
     "cellar",
-    "front_garden",
+    "garden",
     "terrace",
     "elevator",
     "parking",
@@ -150,8 +150,8 @@ class Listing:
         ):
             return False
         if (
-            user_preferences.front_garden is not None
-            and self.front_garden != user_preferences.front_garden
+            user_preferences.garden is not None
+            and self.garden != user_preferences.garden
         ):
             return False
         return True
