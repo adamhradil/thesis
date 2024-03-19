@@ -15,7 +15,8 @@ from database_wrapper import DatabaseWrapper
 from bezrealitky_scraper.bezrealitky.spiders.search_flats import SearchFlatsSpider
 from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 
-from listing import Disposition, UserPreferences, Listing
+from listing import Listing, Disposition
+from user_preferences import UserPreferences
 
 # from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 
