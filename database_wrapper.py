@@ -15,6 +15,8 @@ class DatabaseWrapper:
 
     def create_table(self):
         """create a table from the create_table_sql statement"""
+        if self.conn is None:
+            return
         try:
             c = self.conn.cursor()
             listing = Listing()
@@ -29,7 +31,8 @@ class DatabaseWrapper:
         """
         Insert a Listing into the listings table
         """
-
+        if self.conn is None:
+            return
         columns = [attr for attr in dir(listing) if not callable(getattr(listing, attr)) and not attr.startswith("__")]
         placeholders = ','.join(['?' for _ in columns])
         sql = f"INSERT INTO listings({','.join(columns)}) VALUES({placeholders}) "
@@ -54,6 +57,8 @@ class DatabaseWrapper:
         """
         Query a Listing by id from the listings table
         """
+        if self.conn is None:
+            return None
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM listings WHERE id=?", (listing_id,))
 
@@ -69,6 +74,8 @@ class DatabaseWrapper:
         """
         Remove a Listing by id from the listings table
         """
+        if self.conn is None:
+            return
         sql = "DELETE FROM listings WHERE id=?"
         cur = self.conn.cursor()
         cur.execute(sql, (listing_id,))
@@ -78,6 +85,8 @@ class DatabaseWrapper:
         """
         Update a Listing in the listings table
         """
+        if self.conn is None:
+            return
         attributes = [attr for attr in dir(listing) if not callable(getattr(listing, attr)) and not attr.startswith('__')]
         sql = f"UPDATE listings SET {','.join([f'{attr}=?' for attr in attributes if attr != 'id'])} WHERE id=?"
         cur = self.conn.cursor()
@@ -91,10 +100,14 @@ class DatabaseWrapper:
         attribute_values.append(listing.id)
         cur.execute(sql, attribute_values)
         self.conn.commit()
-        
-    def get_df(self):
-        return pd.read_sql_query("SELECT * FROM listings", self.conn)
 
+    def get_df(self):
+        if self.conn is None:
+            return None
+        self.conn.row_factory = None
+        df = pd.read_sql_query("SELECT * FROM listings", self.conn)
+        self.conn.row_factory = self.dict_factory
+        return df
 
     def close_conn(self):
         if self.conn:
