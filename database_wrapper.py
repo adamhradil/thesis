@@ -9,6 +9,7 @@ class DatabaseWrapper:
         self.conn = None
         try:
             self.conn = connect(db_file)
+            self.conn.row_factory = self.dict_factory
         except Error as e:
             print(e)
 
@@ -40,6 +41,14 @@ class DatabaseWrapper:
         cur.execute(sql, [getattr(listing, attr) for attr in columns])
         self.conn.commit()
         return cur.lastrowid
+
+    # https://stackoverflow.com/a/3300514
+    def dict_factory(self, cursor, row):
+        d = {}
+        for idx, col in enumerate(cursor.description):
+            d[col[0]] = row[idx]
+        return d
+
 
     def get_listing(self, listing_id):
         """
