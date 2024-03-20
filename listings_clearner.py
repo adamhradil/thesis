@@ -79,7 +79,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # ## Area
 
     # %%
-    df.area.sort_values()
+    df.area = df.area.astype(int)
 
     # %% [markdown]
     # ## Available from
