@@ -24,48 +24,7 @@ from listings_clearner import clean_listing_database, get_point
 items = []
 
 
-def get_point(address) -> None | Point:
-    geolocator = Nominatim(user_agent="distance_calculator")
-    location = geolocator.geocode(address)
-    if location:
-        return Point(location.latitude, location.longitude)  # type: ignore
-    else:
-        return None
-
-
-def clean_listings(listings):
-    cleaned_listings = []
-    seen_listings = set()
-
-    for listing in listings:
-        # Remove duplicates
-        if str(listing) in seen_listings:
-            continue
-        seen_listings.add(str(listing))
-
-        # Handle missing values
-        for attr, value in listing.__dict__.items():
-            if value == "":
-                listing.__dict__[attr] = None  # or some default value
-
-        # Validate data types
-        # This is just an example for the 'area' attribute
-        if listing.area is not None:
-            try:
-                listing.area = int(listing.area)
-            except ValueError:
-                continue  # skip this listing
-
-        # Normalize text
-        if listing.description is not None:
-            listing.description = listing.description.lower().strip()
-
-        cleaned_listings.append(listing)
-
-    return cleaned_listings
-
-
-def balcony_filter(listings: list[Listing]):
+def balcony_filter(listings_list: list[Listing]):
     l1 = []
     l2 = []
     l3 = []
