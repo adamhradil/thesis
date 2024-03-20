@@ -1,42 +1,39 @@
-from listing import Disposition, OwnershipType, PropertyMaterial, PropertyState, Furnished
+from datetime import datetime
+from disposition import Disposition
+from property_type import PropertyType
+from furnished import Furnished
+from geopy import Point
 
 
 class UserPreferences:
-    def __init__(
-        self,
-        dispositions=None,
-        weight_area=None,
-        weight_rent=None,
-        weight_location=None,
-        min_area=None,
-        max_area=None,
-        min_price=None,
-        max_price=None,
-        ownership_type=None,
-        state=None,
-        property_material=None,
-        furnished=None,
-        balcony=None,
-        terrace=None,
-        loggia=None,
-        cellar=None,
-        garden=None,
-    ) -> None:
-        self.dispositions: list[Disposition] | None = dispositions
-        self.weight_area: float | None = weight_area
-        self.weight_rent: float | None = weight_rent
-        self.weight_location: float | None = weight_location
-        self.min_area: int | None = min_area
-        self.max_area: int | None = max_area
-        self.min_price: int | None = min_price
-        self.max_price: int | None = max_price
-        self.ownership_type: list[OwnershipType] | None = ownership_type
-        self.state: list[PropertyState] | None = state
-        self.property_material: list[PropertyMaterial] | None = property_material
-        self.furnished: Furnished | None = furnished
-        self.balcony: bool | None = balcony
-        self.terrace: bool | None = terrace
-        self.loggia: bool | None = loggia
-        self.cellar: bool | None = cellar
-        self.garden: bool | None = garden
+    def __init__(self) -> None:
+        self.location: None | str = None  # later region, city, district, street
+        self.points_of_interest: None | list[Point] = None
+
+        self.disposition: None | list[Disposition] = None
+
+        self.min_area: None | int = None
+        self.max_area: None | int = None
+
+        self.min_price: None | int = None
+        self.max_price: None | int = None
+
+        self.available_from: None | datetime = None
+
+        self.balcony: None | bool = None
+        self.cellar: None | bool = None
+        self.elevator: None | bool = None
+        self.garage: None | bool = None
+        self.garden: None | bool = None
+        self.loggie: None | bool = None
+        self.parking: None | bool = None
+        self.terrace: None | bool = None
+
+        self.type: None | PropertyType = None
+        self.furnished: None | Furnished = None
+        self.status: None | str = None
+
+        self.floor: None | int = None  # 2. and higher?
+
+        self.description: None | str = None  # description contains a word?
 

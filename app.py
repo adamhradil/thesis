@@ -3,6 +3,7 @@
 import datetime
 import json
 import time
+import sys
 
 from scrapy import signals  # type: ignore
 from scrapy.crawler import CrawlerProcess  # type: ignore
@@ -10,34 +11,27 @@ from scrapy.exporters import JsonItemExporter  # type: ignore
 
 from geopy.geocoders import Nominatim  # type: ignore
 from geopy.distance import geodesic  # type: ignore
+from geopy.point import Point  # type: ignore
+
 from database_wrapper import DatabaseWrapper
 
 from bezrealitky_scraper.bezrealitky.spiders.search_flats import SearchFlatsSpider
 from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 
-from listing import Listing, Disposition
+from listing import Listing
 from user_preferences import UserPreferences
+from disposition import Disposition
 
 # from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 
 items = []
 
 
-def get_coordinates(address):
+def get_point(address) -> None | Point:
     geolocator = Nominatim(user_agent="distance_calculator")
     location = geolocator.geocode(address)
     if location:
-        return (location.latitude, location.longitude)  # type: ignore
-    else:
-        return None
-
-
-def calculate_distance(address1, address2):
-    coord1 = get_coordinates(address1)
-    coord2 = get_coordinates(address2)
-
-    if coord1 and coord2:
-        return geodesic(coord1, coord2).kilometers
+        return Point(location.latitude, location.longitude)  # type: ignore
     else:
         return None
 
@@ -149,21 +143,19 @@ if __name__ == "__main__":
     for i in items:
         listings.append(Listing(i))
 
-    dist = calculate_distance(POI, items[0]["address"])
+    poi_point = get_point(POI)
+    if poi_point is None:
+        print("Could not find the point of interest")
+        sys.exit(1)
+    print(repr(tuple(poi_point)))
 
-    preferences = UserPreferences(
-        dispositions=[
-            Disposition.TWO_PLUS_ONE,
-            Disposition.THREE_PLUS_KK,
-            Disposition.THREE_PLUS_ONE,
-        ],
-        weight_area=0.5,
-        weight_rent=0.4,
-        weight_location=0.1,
-        min_area=50,
-        max_price=30000,
-        balcony=True,
-    )
+    preferences = UserPreferences()
+    preferences.location = "Praha"
+    preferences.points_of_interest = [poi_point]
+    preferences.disposition = [Disposition.ONE_PLUS_KK]
+    preferences.min_area = 50
+    preferences.max_area = 100
+    preferences.max_price = 30000
 
     balcony_filter(listings)
 
@@ -171,9 +163,6 @@ if __name__ == "__main__":
 
     db = DatabaseWrapper("listings.db")
     db.create_table()
-    # if not db.verify_table_columns():
-    #     print("Table columns are not correct")
-    #     sys.exit(1)
     for listing in listings:
         found_listing = db.get_listing(listing.id)
         if found_listing:
