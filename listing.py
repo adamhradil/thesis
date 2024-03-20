@@ -1,5 +1,10 @@
 from enum import Enum
 import scrapy
+from disposition import Disposition
+from furnished import Furnished
+from property_type import PropertyType
+from ownership_type import OwnershipType
+from property_status import PropertyStatus
 from user_preferences import UserPreferences
 
 
@@ -53,7 +58,19 @@ class Listing:
         if data is None:
             return None
         if isinstance(data, scrapy.Item) or isinstance(data, dict):
-            return data.get(attribute, "")
+            match attribute:
+                case "ownership":
+                    return OwnershipType(data.get(attribute, ""))
+                case "disposition":
+                    return Disposition(data.get(attribute, ""))
+                case "furnished":
+                    return Furnished(data.get(attribute, ""))
+                case "type":
+                    return PropertyType(data.get(attribute, ""))
+                case "status":
+                    return PropertyStatus(data.get(attribute, ""))
+                case _:
+                    return data.get(attribute, "")
 
     def is_relevant(self, user_preferences: UserPreferences):
         if (
