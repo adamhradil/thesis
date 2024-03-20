@@ -423,10 +423,6 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     df.fillna(value=np.nan, inplace=True)
 
     # %%
-    # save df to xlsx openpyxl==3.1.2 required
-    df.to_excel("listings.xlsx", na_rep="NaN")
-
-    # %%
     # mapping = {
     #     "1+1": 1,
     #     "1+kk": 2,
@@ -476,9 +472,6 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
         df[col] = (df[col] - min_val) / denominator
 
         print(df[col].value_counts(bins=10, sort=False))
-
-    # %%
-    df.to_excel("normalized_listings.xlsx", na_rep="NaN")
 
     # %% [markdown]
     # # Calculate score
