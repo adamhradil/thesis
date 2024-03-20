@@ -70,7 +70,7 @@ def balcony_filter(listings: list[Listing]):
     l2 = []
     l3 = []
     l4 = []
-    for advert in listings:
+    for advert in listings_list:
         if "balk" in advert.description.lower():
             l1.append(advert)
         if advert.balcony:
@@ -99,8 +99,9 @@ if __name__ == "__main__":
     # FILE = "sreality_items.json"
     FILE = "all_items.json"
     POI = "NTK Praha"
-    start = 0.0
-    end = 0.0
+    DB_FILE = "listings.db"
+    START = 0.0
+    END = 0.0
 
     crawl_time = datetime.datetime.now()
 
@@ -109,12 +110,14 @@ if __name__ == "__main__":
             settings={
                 "LOG_LEVEL": "INFO",
                 "DEFAULT_REQUEST_HEADERS": {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36",
+                    "User-Agent": """Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+                        AppleWebKit/537.36 (KHTML, like Gecko)
+                        Chrome/60.0.3112.113 Safari/537.36""",
                 },
             }
         )
 
-        start = time.time()
+        START = time.time()
 
         crawler = process.create_crawler(SearchFlatsSpider)
         crawler.signals.connect(item_scraped, signal=signals.item_scraped)
@@ -131,7 +134,7 @@ if __name__ == "__main__":
                 exporter.export_item(i)
             exporter.finish_exporting()
 
-        end = time.time()
+        END = time.time()
     else:
         with open(FILE, "r", encoding="utf-8") as f:
             items = json.load(f)
@@ -156,9 +159,7 @@ if __name__ == "__main__":
 
     balcony_filter(listings)
 
-    listings = clean_listings(listings=listings)
-
-    db = DatabaseWrapper("listings.db")
+    db = DatabaseWrapper(DB_FILE)
     db.create_table()
     for listing in listings:
         found_listing = db.get_listing(listing.id)
@@ -202,5 +203,7 @@ if __name__ == "__main__":
     df = db.get_df()
     db.close_conn()
 
+    if START != 0.0 and END != 0.0:
+        print(f"crawling finished in {END - START}s")
 
     df = clean_listing_database(DB_FILE)
