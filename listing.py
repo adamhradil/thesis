@@ -28,6 +28,7 @@ class Listing:
         self.garage = self._value_factory("garage", data)
         self.pets = self._value_factory("pets", data)
         self.loggie = self._value_factory("loggie", data)
+        self.ownership = self._value_factory("ownership", data)
         self.public_transport = self._value_factory("public_transport", data)
         self.gps_lat = self._value_factory("gps_lat", data)
         self.gps_lon = self._value_factory("gps_lon", data)
