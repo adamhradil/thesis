@@ -10,7 +10,6 @@ from scrapy.crawler import CrawlerProcess  # type: ignore
 from scrapy.exporters import JsonItemExporter  # type: ignore
 
 from geopy.geocoders import Nominatim  # type: ignore
-from geopy.distance import geodesic  # type: ignore
 from geopy.point import Point  # type: ignore
 
 from database_wrapper import DatabaseWrapper

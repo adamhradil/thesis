@@ -36,4 +36,3 @@ class UserPreferences:
         self.floor: None | int = None  # 2. and higher?
 
         self.description: None | str = None  # description contains a word?
-
