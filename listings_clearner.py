@@ -341,16 +341,16 @@ def clean_listing_database(filename: str):
     # ## POI Distance
 
     # %%
-    POI = "NTK Praha"
-    poi_point = get_point(POI)
+    poi = "NTK Praha"
+    poi_point = get_point(poi)
 
     # %%
     points_of_interest = [poi_point]
 
     # https://stackoverflow.com/questions/37885798/how-to-calculate-the-midpoint-of-several-geolocations-in-python
-    X = 0.0
-    Y = 0.0
-    Z = 0.0
+    x = 0.0
+    y = 0.0
+    z = 0.0
 
     for point in points_of_interest:
         if point is None:
@@ -358,22 +358,21 @@ def clean_listing_database(filename: str):
         latitude = np.radians(point.latitude)
         longitude = np.radians(point.longitude)
 
-        X += np.cos(latitude) * np.cos(longitude)
-        Y += np.cos(latitude) * np.sin(longitude)
-        Z += np.sin(latitude)
+        x += np.cos(latitude) * np.cos(longitude)
+        y += np.cos(latitude) * np.sin(longitude)
+        z += np.sin(latitude)
 
-    TOTAL = len(points_of_interest)
+    total = len(points_of_interest)
 
-    X = X / TOTAL
-    Y = Y / TOTAL
-    Z = Z / TOTAL
+    x = x / total
+    y = y / total
+    z = z / total
 
-    central_longitude = np.degrees(np.arctan2(Y, X))
-    central_square_root = np.sqrt(X * X + Y * Y)
-    central_latitude = np.degrees(np.arctan2(Z, central_square_root))
+    central_longitude = np.degrees(np.arctan2(y, x))
+    central_square_root = np.sqrt(x * x + y * y)
+    central_latitude = np.degrees(np.arctan2(z, central_square_root))
 
     print(f"{central_latitude}, {central_longitude}")
-
 
     for i, row in df.iterrows():
         df.loc[i, "poi_distance"] = distance(  # type: ignore
@@ -403,7 +402,6 @@ def clean_listing_database(filename: str):
     ]
     interval = ["available_from", "created", "last_seen", "updated"]
     ratio = ["area", "rent", "poi_distance", "garden"]  # 'gps_lat', 'gps_lon' not included
-
 
     # %%
     for col in ordinal + ratio:
@@ -435,7 +433,6 @@ def clean_listing_database(filename: str):
     # }
     # df.disposition = df.disposition.map(mapping)
 
-
     # status_mapping = {
     #     "Projekt": 1,
     #     "Ve výstavbě": 2,
@@ -465,11 +462,10 @@ def clean_listing_database(filename: str):
         min_val = df[col].min()
         denominator = max_val - min_val
         if denominator == 0:
-            DENOMINATOR = 1e-10  # Add a small epsilon value to avoid division by zero
+            denominator = 1e-10  # Add a small epsilon value to avoid division by zero
         df[col] = (df[col] - min_val) / denominator
 
         print(df[col].value_counts(bins=10, sort=False))
-
 
     # %%
     df.to_excel("normalized_listings.xlsx", na_rep="NaN")
