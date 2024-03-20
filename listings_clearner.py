@@ -2,19 +2,21 @@
 # # Data Loading
 
 # %%
+import sys
+import unidecode
+import pandas as pd  # type: ignore
+import numpy as np
+from geopy.distance import distance  # type: ignore
 from database_wrapper import DatabaseWrapper
 from sreality_scraper.sreality.spiders.sreality_spider import SrealityUrlBuilder
-import sys
-import pandas as pd
-import numpy as np
-import unidecode
+from app import get_point
 
 # get the data from the database
 db = DatabaseWrapper("listings.db")
 df = db.get_df()
 db.close_conn()
 if df is None:
-    print("No data in the database")
+    print("No data to process")
     sys.exit(1)
 
 # %% [markdown]
@@ -101,13 +103,6 @@ df.loc[~invalid_indices, "available_from"] = pd.to_datetime(
     errors="coerce",
 )
 
-# %%
-df.loc[~invalid_indices, "available_from"]
-
-# %%
-# get all NaT values from available_from
-df.loc[df.available_from.isnull()]
-
 # %% [markdown]
 # ## Balcony
 
@@ -171,7 +166,7 @@ df.floor.unique()
 
 # %%
 df.floor = df.floor.apply(lambda x: 0 if x == "přízemí" else x).apply(
-    lambda x: np.nan if x == None else int(x)
+    lambda x: np.nan if x is None else int(x)
 )
 df.floor.unique()
 
@@ -194,7 +189,6 @@ df.garden = df.garden.apply(
         else x
     )
 ).astype(float)
-df.loc[df.garden.notnull(), "garden"]
 
 # %% [markdown]
 # ## Furnished
@@ -209,7 +203,7 @@ df.furnished = df.furnished.apply(
         if isinstance(x, str)
         else x
     )
-).apply(lambda x: np.nan if x == None else int(x))
+).apply(lambda x: np.nan if x is None else int(x))
 
 # %%
 df.furnished.unique()
@@ -275,7 +269,7 @@ df.rent.sort_values().unique()
 df.status.unique()
 
 # %%
-## Ownership
+# ## Ownership
 
 # %%
 df.ownership.unique()
@@ -283,11 +277,15 @@ df.ownership.unique()
 # %%
 df.ownership = df.ownership.apply(
     lambda x: (
-        str(x).replace("1", "Osobní").replace("2", "Družstevní").replace("3", "Ostatní").replace("Obecní", "Ostatní")
+        str(x)
+        .replace("1", "Osobní")
+        .replace("2", "Družstevní")
+        .replace("3", "Ostatní")
+        .replace("Obecní", "Ostatní")
         if isinstance(x, int)
         else x
     )
-).apply(lambda x: np.nan if x == None else x)
+).apply(lambda x: np.nan if x is None else x)
 
 # %%
 df.ownership.unique()
@@ -336,64 +334,80 @@ df.type.unique()
 
 # %%
 df.floor = df.floor.apply(lambda x: int(x) if isinstance(x, str) else x)
-df.floor
 
 # %% [markdown]
 # ## POI Distance
 
 # %%
-from app import get_point
 POI = "NTK Praha"
 poi_point = get_point(POI)
 
 # %%
-
-from geopy.distance import distance
-
 points_of_interest = [poi_point]
 
 # https://stackoverflow.com/questions/37885798/how-to-calculate-the-midpoint-of-several-geolocations-in-python
-x = 0.0
-y = 0.0
-z = 0.0
+X = 0.0
+Y = 0.0
+Z = 0.0
 
 for point in points_of_interest:
-    
-    
+    if point is None:
+        continue
     latitude = np.radians(point.latitude)
     longitude = np.radians(point.longitude)
 
-    x += np.cos(latitude) * np.cos(longitude)
-    y += np.cos(latitude) * np.sin(longitude)
-    z += np.sin(latitude)
+    X += np.cos(latitude) * np.cos(longitude)
+    Y += np.cos(latitude) * np.sin(longitude)
+    Z += np.sin(latitude)
 
-total = len(points_of_interest)
+TOTAL = len(points_of_interest)
 
-x = x / total
-y = y / total
-z = z / total
+X = X / TOTAL
+Y = Y / TOTAL
+Z = Z / TOTAL
 
-central_longitude = np.degrees(np.arctan2(y, x))
-central_square_root = np.sqrt(x * x + y * y)
-central_latitude = np.degrees(np.arctan2(z, central_square_root))
+central_longitude = np.degrees(np.arctan2(Y, X))
+central_square_root = np.sqrt(X * X + Y * Y)
+central_latitude = np.degrees(np.arctan2(Z, central_square_root))
 
 print(f"{central_latitude}, {central_longitude}")
 
 
 for i, row in df.iterrows():
-    df.loc[i, "poi_distance"] = distance((central_latitude, central_longitude), (row.gps_lat, row.gps_lon)).m
-df.poi_distance
+    df.loc[i, "poi_distance"] = distance(  # type: ignore
+        (central_latitude, central_longitude), (row.gps_lat, row.gps_lon)
+    ).m
 
 # %%
-nominal = ['address', 'description', 'disposition', 'ownership', 'status', 'type', 'url']
-ordinal = ['floor', 'furnished', 'balcony', 'cellar', 'elevator', 'garage', 'loggie', 'parking', 'terrace']
-interval = ['available_from', 'created', 'last_seen', 'updated']
-ratio = ['area', 'rent', 'poi_distance', 'garden'] # 'gps_lat', 'gps_lon' not included
+nominal = [
+    "address",
+    "description",
+    "disposition",
+    "ownership",
+    "status",
+    "type",
+    "url",
+]
+ordinal = [
+    "floor",
+    "furnished",
+    "balcony",
+    "cellar",
+    "elevator",
+    "garage",
+    "loggie",
+    "parking",
+    "terrace",
+]
+interval = ["available_from", "created", "last_seen", "updated"]
+ratio = ["area", "rent", "poi_distance", "garden"]  # 'gps_lat', 'gps_lon' not included
 
 
 # %%
 for col in ordinal + ratio:
-    print(f"{df[col].sort_values().value_counts(bins=5 if col not in ordinal else None)}\n")
+    print(
+        f"{df[col].sort_values().value_counts(bins=5 if col not in ordinal else None)}\n"
+    )
 
 # %%
 df.fillna(value=np.nan, inplace=True)
@@ -401,7 +415,6 @@ df.fillna(value=np.nan, inplace=True)
 # %%
 # save df to xlsx openpyxl==3.1.2 required
 df.to_excel("listings.xlsx", na_rep="NaN")
-df
 
 # %%
 # mapping = {
@@ -450,7 +463,7 @@ for col in ordinal + ratio:
     min_val = df[col].min()
     denominator = max_val - min_val
     if denominator == 0:
-        denominator = 1e-10  # Add a small epsilon value to avoid division by zero
+        DENOMINATOR = 1e-10  # Add a small epsilon value to avoid division by zero
     df[col] = (df[col] - min_val) / denominator
 
     print(df[col].value_counts(bins=10, sort=False))
@@ -473,5 +486,3 @@ print(ordinal + ratio)
 # sort df by sum
 pd.set_option("display.max_columns", None)
 df.sort_values(by="poi_distance", ascending=False)
-
-
