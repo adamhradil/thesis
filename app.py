@@ -9,9 +9,6 @@ from scrapy import signals  # type: ignore
 from scrapy.crawler import CrawlerProcess  # type: ignore
 from scrapy.exporters import JsonItemExporter  # type: ignore
 
-from geopy.geocoders import Nominatim  # type: ignore
-from geopy.point import Point  # type: ignore
-
 from database_wrapper import DatabaseWrapper
 
 from bezrealitky_scraper.bezrealitky.spiders.search_flats import SearchFlatsSpider
@@ -20,6 +17,7 @@ from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 from listing import Listing
 from user_preferences import UserPreferences
 from disposition import Disposition
+from listings_clearner import clean_listing_database, get_point
 
 # from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 
@@ -204,5 +202,5 @@ if __name__ == "__main__":
     df = db.get_df()
     db.close_conn()
 
-    if start != 0.0 and end != 0.0:
-        print(f"crawling finished in {end - start}s")
+
+    df = clean_listing_database(DB_FILE)

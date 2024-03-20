@@ -7,14 +7,24 @@ import unidecode
 import pandas as pd  # type: ignore
 import numpy as np
 from geopy.distance import distance  # type: ignore
+from geopy.geocoders import Nominatim  # type: ignore
+from geopy.point import Point  # type: ignore
 from database_wrapper import DatabaseWrapper
 from sreality_scraper.sreality.spiders.sreality_spider import SrealityUrlBuilder
-from app import get_point
 
 
-def clean_listing_database(filename: str):
+def get_point(address) -> None | Point:
+    geolocator = Nominatim(user_agent="distance_calculator")
+    location = geolocator.geocode(address)
+    if location:
+        return Point(location.latitude, location.longitude)  # type: ignore
+    else:
+        return None
+
+
+def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # get the data from the database
-    db = DatabaseWrapper("listings.db")
+    db = DatabaseWrapper(filename)
     df = db.get_df()
     db.close_conn()
     if df is None:
