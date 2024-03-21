@@ -107,14 +107,16 @@ class UserPreferences:
                 df = df[df["garden"].isnull() == True]
 
         if self.description:
-            df = df[df["description"].str.contains(self.description, case=False, na=False)]
+            df = df[
+                df["description"].str.contains(self.description, case=False, na=False)
+            ]
 
         if self.location:
             df = df[df["address"].str.contains(self.location, case=False, na=False)]
 
         return df
 
-    def calculate_score(self, df: pd.DataFrame) -> pd.DataFrame:
+    def calculate_score(self, df: pd.DataFrame, scoring_weights: dict) -> pd.DataFrame:
         if self.points_of_interest is not None:
             # https://stackoverflow.com/questions/37885798/how-to-calculate-the-midpoint-of-several-geolocations-in-python
             x = 0.0
@@ -147,101 +149,58 @@ class UserPreferences:
                 df.loc[i, "poi_distance"] = distance(  # type: ignore
                     (central_latitude, central_longitude), (row.gps_lat, row.gps_lon)
                 ).m
+        else:
+            df["poi_distance"] = 0
 
-        # %%
-        # nominal = [
-        #     "address",
-        #     "description",
-        #     "disposition",
-        #     "ownership",
-        #     "status",
-        #     "type",
-        #     "url",
-        #     "floor",
-        #     "furnished",
-        #     'gps_lat',
-        #     'gps_lon'
-        # ]
-        # ordinal = [
-        #     "balcony",
-        #     "cellar",
-        #     "elevator",
-        #     "garage",
-        #     "loggie",
-        #     "parking",
-        #     "terrace",
-        # ]
-        # interval = ["available_from", "created", "last_seen", "updated"]
-        # ratio = ["area", "rent", "poi_distance", "garden"]
+        disposition_mapping = {
+            "1+1": 1,
+            "1+kk": 2,
+            "2+1": 3,
+            "2+kk": 4,
+            "3+1": 5,
+            "3+kk": 6,
+            "4+1": 7,
+            "4+kk": 8,
+            "5+kk": 9,
+            "5+1": 10,
+            "6-a-více": 11,
+            "other": np.nan,
+        }
+        df.disposition = df.disposition.map(disposition_mapping)
 
-        # # %%
-        # for col in ordinal + ratio:
-        #     print(
-        #         f"{df[col].sort_values().value_counts(bins=5 if col not in ordinal else None)}\n"
-        #     )
+        scoring_columns = [
+            "area",
+            "rent",
+            "disposition",
+            "garden",
+            "balcony",
+            "cellar",
+            "loggie",
+            "elevator",
+            "terrace",
+            "garage",
+            "parking",
+            "poi_distance",
+        ]
 
-        # %%
-        # mapping = {
-        #     "1+1": 1,
-        #     "1+kk": 2,
-        #     "2+1": 3,
-        #     "2+kk": 4,
-        #     "3+1": 5,
-        #     "3+kk": 6,
-        #     "4+1": 7,
-        #     "4+kk": 8,
-        #     "5+kk": 9,
-        #     "5+1": 10,
-        #     "6-a-více": 11,
-        #     "other": 12,
-        # }
-        # df.disposition = df.disposition.map(mapping)
+        if int(sum(v for v in scoring_weights.values())) != len(scoring_weights):
+            raise ValueError("Sum of weights must be equal to it's length.")
 
-        # status_mapping = {
-        #     "Projekt": 1,
-        #     "Ve výstavbě": 2,
-        #     "Novostavba": 3,
-        #     "Velmi dobrý": 4,
-        #     "Dobrý": 5,
-        #     "V rekonstrukci": 6,
-        #     "Po rekonstrukci": 7,
-        #     "Před rekonstrukcí": 8,
-        # }
-        # df.status = df.status.map(status_mapping)
+        # Normalize columns
+        for col in scoring_columns:
+            max_val = df[col].max()
+            min_val = df[col].min()
+            denominator = max_val - min_val
+            if denominator == 0:
+                denominator = (
+                    1e-10  # Add a small epsilon value to avoid division by zero
+                )
+            if col == "poi_distance" or col == "rent":
+                df[col] = (max_val - df[col]) / denominator
+            else:
+                df[col] = (df[col] - min_val) / denominator
 
-        # type_mapping = {
-        #     "cihlova": 1,
-        #     "panelova": 2,
-        #     "ostatni": 3,
-        # }
-        # df.type = df.type.map(type_mapping)
+        # Calculate score
+        df["sum"] = (df[scoring_columns] * pd.Series(scoring_weights)).sum(axis=1)/len(scoring_columns)
 
-        # %% [markdown]
-        # # Normalize columns
-
-        # %%
-        # for col in ordinal + ratio:
-        #     print(col)
-        #     max_val = df[col].max()
-        #     min_val = df[col].min()
-        #     denominator = max_val - min_val
-        #     if denominator == 0:
-        #         denominator = 1e-10  # Add a small epsilon value to avoid division by zero
-        #     df[col] = (df[col] - min_val) / denominator
-
-        #     print(df[col].value_counts(bins=10, sort=False))
-
-        # # %% [markdown]
-        # # # Calculate score
-
-        # # %%
-        # # sum values of all ordinal and ratio columns
-        # df["sum"] = df[ordinal + ratio].sum(axis=1)
-        # # normalize the sum
-        # df["sum"] = (df["sum"] - df["sum"].min()) / (df["sum"].max() - df["sum"].min())
-
-        # # %%
-        # print(ordinal + ratio)
-        # sort df by sum
-
-        return df.sort_values(by="poi_distance", ascending=True)
+        return df

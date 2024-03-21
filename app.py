@@ -118,7 +118,8 @@ if __name__ == "__main__":
         listings.append(Listing(i))
 
     poi_point = get_point(POI)
-    if poi_point is None:
+    poi_point_2 = get_point("GRAM Praha")
+    if poi_point is None or poi_point_2 is None:
         print("Could not find the point of interest")
         sys.exit(1)
 
@@ -172,23 +173,32 @@ if __name__ == "__main__":
         print(f"crawling finished in {END - START}s")
 
     preferences = UserPreferences()
-    preferences.location = "Praha"
-    preferences.points_of_interest = [poi_point]
-    preferences.disposition = [Disposition.TWO_PLUS_KK, Disposition.TWO_PLUS_ONE, Disposition.THREE_PLUS_KK, Disposition.THREE_PLUS_ONE]
-    # preferences.min_area = 75
-    # preferences.max_area = 79
+    # preferences.location = "Praha"
+    # preferences.points_of_interest = [poi_point, poi_point_2]
+    # preferences.disposition = [Disposition.TWO_PLUS_KK, Disposition.TWO_PLUS_ONE, Disposition.THREE_PLUS_KK, Disposition.THREE_PLUS_ONE, Disposition.FOUR_PLUS_KK, Disposition.FOUR_PLUS_ONE]
+    # preferences.min_area = 50
+    # preferences.max_area = 100
     # preferences.min_price = 25000
     # preferences.max_price = 30000
-    preferences.balcony = True
-    preferences.terrace = True
-    preferences.garden = False
-    preferences.floor = 3
-    preferences.type = [PropertyType.BRICK]
-    preferences.furnished = [Furnished.YES]
-    preferences.status = [PropertyStatus.NEW]
-    preferences.description = "teras"
-    preferences.available_from = datetime.date(2024, 3, 21)
-    preferences.location = "Karlín"
+    # preferences.balcony = True
+    # preferences.terrace = True
+
+    # preferences.floor = 3
+
+    scoring_weights = {
+        "area": 0.9,
+        "rent": 0.9,
+        "disposition": 0.9,
+        "garden": 0.9,
+        "balcony": 0.9,
+        "cellar": 0.9,
+        "loggie": 0.9,
+        "elevator": 0.9,
+        "terrace": 0.9,
+        "garage": 0.9,
+        "parking": 0.9,
+        "poi_distance": 2.1,
+    }
 
     df = clean_listing_database(DB_FILE)
 
@@ -197,7 +207,6 @@ if __name__ == "__main__":
             "address",
             "area",
             "rent",
-            "poi_distance",
             "disposition",
             "floor",
             "furnished",
@@ -223,3 +232,4 @@ if __name__ == "__main__":
         ]
     ]
     df = preferences.filter_listings(df)
+    df = preferences.calculate_score(df, scoring_weights)
