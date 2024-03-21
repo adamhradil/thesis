@@ -177,9 +177,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     df.floor.unique()
 
     # %%
-    df.floor = df.floor.apply(lambda x: 0 if x == "přízemí" else x).apply(
-        lambda x: np.nan if x is None else int(x)
-    )
+    df.floor = df.floor.apply(lambda x: 0 if x == "přízemí" else x)
     df.floor.unique()
 
     # %% [markdown]
@@ -211,11 +209,11 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # %%
     df.furnished = df.furnished.apply(
         lambda x: (
-            x.replace("Nevybaveno", "2").replace("Částečně", "3").replace("Vybaveno", "1")
-            if isinstance(x, str)
+            str(x).replace("2", "Nevybaveno").replace("3", "Částečně").replace("1", "Vybaveno").replace("0", "")
+            if isinstance(x, int)
             else x
         )
-    ).apply(lambda x: np.nan if x is None else int(x))
+    )
 
     # %%
     df.furnished.unique()
@@ -293,11 +291,10 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
             .replace("1", "Osobní")
             .replace("2", "Družstevní")
             .replace("3", "Ostatní")
-            .replace("Obecní", "Ostatní")
             if isinstance(x, int)
             else x
         )
-    ).apply(lambda x: np.nan if x is None else x)
+    ).apply(lambda x: x.replace("Obecní", "Ostatní") if isinstance(x, str) else x)
 
     # %%
     df.ownership.unique()
@@ -398,10 +395,12 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
         "status",
         "type",
         "url",
-    ]
-    ordinal = [
         "floor",
         "furnished",
+        'gps_lat',
+        'gps_lon'
+    ]
+    ordinal = [
         "balcony",
         "cellar",
         "elevator",
@@ -411,7 +410,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
         "terrace",
     ]
     interval = ["available_from", "created", "last_seen", "updated"]
-    ratio = ["area", "rent", "poi_distance", "garden"]  # 'gps_lat', 'gps_lon' not included
+    ratio = ["area", "rent", "poi_distance", "garden"]
 
     # %%
     for col in ordinal + ratio:
