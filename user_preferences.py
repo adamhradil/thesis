@@ -5,6 +5,10 @@ from disposition import Disposition
 from property_status import PropertyStatus
 from property_type import PropertyType
 from furnished import Furnished
+from geopy.distance import distance  # type: ignore
+from geopy.geocoders import Nominatim  # type: ignore
+from geopy.point import Point  # type: ignore
+import numpy as np  # type: ignore
 
 
 class UserPreferences:
@@ -107,5 +111,157 @@ class UserPreferences:
 
         if self.location:
             df = df[df["address"].str.contains(self.location, case=False, na=False)]
+
+        return df
+
+    def get_point(self, address) -> None | Point:
+        geolocator = Nominatim(user_agent="distance_calculator")
+        location = geolocator.geocode(address)
+        if location:
+            return Point(location.latitude, location.longitude)  # type: ignore
+        else:
+            return None
+
+    def calculate_score(self, df: pd.DataFrame) -> pd.DataFrame:
+        # %% [markdown]
+        # ## POI Distance
+
+        # %%
+        poi = "NTK Praha"
+        poi_point = self.get_point(poi)
+
+        # %%
+        points_of_interest = [poi_point]
+
+        # https://stackoverflow.com/questions/37885798/how-to-calculate-the-midpoint-of-several-geolocations-in-python
+        x = 0.0
+        y = 0.0
+        z = 0.0
+
+        for point in points_of_interest:
+            if point is None:
+                continue
+            latitude = np.radians(point.latitude)
+            longitude = np.radians(point.longitude)
+
+            x += np.cos(latitude) * np.cos(longitude)
+            y += np.cos(latitude) * np.sin(longitude)
+            z += np.sin(latitude)
+
+        total = len(points_of_interest)
+
+        x = x / total
+        y = y / total
+        z = z / total
+
+        central_longitude = np.degrees(np.arctan2(y, x))
+        central_square_root = np.sqrt(x * x + y * y)
+        central_latitude = np.degrees(np.arctan2(z, central_square_root))
+
+        print(f"{central_latitude}, {central_longitude}")
+
+        for i, row in df.iterrows():
+            df.loc[i, "poi_distance"] = distance(  # type: ignore
+                (central_latitude, central_longitude), (row.gps_lat, row.gps_lon)
+            ).m
+
+        # %%
+        nominal = [
+            "address",
+            "description",
+            "disposition",
+            "ownership",
+            "status",
+            "type",
+            "url",
+            "floor",
+            "furnished",
+            'gps_lat',
+            'gps_lon'
+        ]
+        ordinal = [
+            "balcony",
+            "cellar",
+            "elevator",
+            "garage",
+            "loggie",
+            "parking",
+            "terrace",
+        ]
+        interval = ["available_from", "created", "last_seen", "updated"]
+        ratio = ["area", "rent", "poi_distance", "garden"]
+
+        # %%
+        for col in ordinal + ratio:
+            print(
+                f"{df[col].sort_values().value_counts(bins=5 if col not in ordinal else None)}\n"
+            )
+
+        # %%
+        # mapping = {
+        #     "1+1": 1,
+        #     "1+kk": 2,
+        #     "2+1": 3,
+        #     "2+kk": 4,
+        #     "3+1": 5,
+        #     "3+kk": 6,
+        #     "4+1": 7,
+        #     "4+kk": 8,
+        #     "5+kk": 9,
+        #     "5+1": 10,
+        #     "6-a-více": 11,
+        #     "other": 12,
+        # }
+        # df.disposition = df.disposition.map(mapping)
+
+        # status_mapping = {
+        #     "Projekt": 1,
+        #     "Ve výstavbě": 2,
+        #     "Novostavba": 3,
+        #     "Velmi dobrý": 4,
+        #     "Dobrý": 5,
+        #     "V rekonstrukci": 6,
+        #     "Po rekonstrukci": 7,
+        #     "Před rekonstrukcí": 8,
+        # }
+        # df.status = df.status.map(status_mapping)
+
+        # type_mapping = {
+        #     "cihlova": 1,
+        #     "panelova": 2,
+        #     "ostatni": 3,
+        # }
+        # df.type = df.type.map(type_mapping)
+
+        # %% [markdown]
+        # # Normalize columns
+
+        # %%
+        # for col in ordinal + ratio:
+        #     print(col)
+        #     max_val = df[col].max()
+        #     min_val = df[col].min()
+        #     denominator = max_val - min_val
+        #     if denominator == 0:
+        #         denominator = 1e-10  # Add a small epsilon value to avoid division by zero
+        #     df[col] = (df[col] - min_val) / denominator
+
+        #     print(df[col].value_counts(bins=10, sort=False))
+
+        # # %% [markdown]
+        # # # Calculate score
+
+        # # %%
+        # # sum values of all ordinal and ratio columns
+        # df["sum"] = df[ordinal + ratio].sum(axis=1)
+        # # normalize the sum
+        # df["sum"] = (df["sum"] - df["sum"].min()) / (df["sum"].max() - df["sum"].min())
+
+        # # %%
+        # print(ordinal + ratio)
+        # sort df by sum
+        pd.set_option("display.max_columns", None)
+        df.sort_values(by="poi_distance", ascending=False)
+        print(df.columns)
 
         return df
