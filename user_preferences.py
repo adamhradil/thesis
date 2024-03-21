@@ -196,11 +196,11 @@ class UserPreferences:
                     1e-10  # Add a small epsilon value to avoid division by zero
                 )
             if col == "poi_distance" or col == "rent":
-                df[col] = (max_val - df[col]) / denominator
+                df["normalized_" + col] = (max_val - df[col]) / denominator
             else:
-                df[col] = (df[col] - min_val) / denominator
+                df["normalized_" + col] = (df[col] - min_val) / denominator
 
+        scoring_columns = ["normalized_" + col for col in scoring_columns]
         # Calculate score
         df["sum"] = (df[scoring_columns] * pd.Series(scoring_weights)).sum(axis=1)/len(scoring_columns)
-
         return df

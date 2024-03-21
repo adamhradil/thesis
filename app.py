@@ -10,6 +10,9 @@ from scrapy.crawler import CrawlerProcess  # type: ignore
 from scrapy.exporters import JsonItemExporter  # type: ignore
 from geopy.geocoders import Nominatim  # type: ignore
 from geopy import Point  # type: ignore
+import pandas as pd
+
+from discord_webhook import DiscordWebhook, DiscordEmbed
 
 from database_wrapper import DatabaseWrapper
 
@@ -28,6 +31,31 @@ from listings_clearner import clean_listing_database
 # from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 
 items = []
+
+
+def send_listings(df: pd.DataFrame):
+    df.sort_values(by="sum", ascending=False, inplace=True)
+    listings_to_send = df.loc[df['sum'] >= 0.62].head(5).to_dict(orient='records')
+
+    webhook = DiscordWebhook(url=webhook_url, username="Real Estate")
+
+    embed = DiscordEmbed(
+        title="Embed Title", description="Your Embed Description", color="03b2f8"
+    )
+    embed.set_author(
+        name="Author Name",
+        url="https://github.com/lovvskillz",
+        icon_url="https://avatars0.githubusercontent.com/u/14542790",
+    )
+    embed.set_footer(text="Embed Footer Text")
+    embed.set_timestamp()
+    # Set `inline=False` for the embed field to occupy the whole line
+    for l in listings_to_send:
+        embed.add_embed_field(name=f"{int(round(l['sum'], 2)*100)}/100 - {l['address']}", value=f"{int(l['rent'])} Kč\n{int(l['area'])} m2\n{l['url']}", inline=False)
+
+
+    webhook.add_embed(embed)
+    response = webhook.execute()
 
 
 def get_point(address) -> None | Point:
@@ -186,18 +214,18 @@ if __name__ == "__main__":
     # preferences.floor = 3
 
     scoring_weights = {
-        "area": 0.9,
-        "rent": 0.9,
-        "disposition": 0.9,
-        "garden": 0.9,
-        "balcony": 0.9,
-        "cellar": 0.9,
-        "loggie": 0.9,
-        "elevator": 0.9,
-        "terrace": 0.9,
-        "garage": 0.9,
-        "parking": 0.9,
-        "poi_distance": 2.1,
+        "normalized_area": 0.9,
+        "normalized_rent": 0.9,
+        "normalized_disposition": 0.9,
+        "normalized_garden": 0.9,
+        "normalized_balcony": 0.9,
+        "normalized_cellar": 0.9,
+        "normalized_loggie": 0.9,
+        "normalized_elevator": 0.9,
+        "normalized_terrace": 0.9,
+        "normalized_garage": 0.9,
+        "normalized_parking": 0.9,
+        "normalized_poi_distance": 2.1,
     }
 
     df = clean_listing_database(DB_FILE)
@@ -233,3 +261,4 @@ if __name__ == "__main__":
     ]
     df = preferences.filter_listings(df)
     df = preferences.calculate_score(df, scoring_weights)
+    send_listings(df)
