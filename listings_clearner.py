@@ -209,11 +209,11 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # %%
     df.furnished = df.furnished.apply(
         lambda x: (
-            str(x).replace("2", "Nevybaveno").replace("3", "Částečně").replace("1", "Vybaveno").replace("0", "")
+            str(x).replace("2", "Nevybaveno").replace("3", "Částečně").replace("1", "Vybaveno")
             if isinstance(x, int)
             else x
         )
-    )
+    ).replace("0", np.nan)
 
     # %%
     df.furnished.unique()
@@ -419,9 +419,6 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
         )
 
     # %%
-    df.fillna(value=np.nan, inplace=True)
-
-    # %%
     # mapping = {
     #     "1+1": 1,
     #     "1+kk": 2,
@@ -487,4 +484,5 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     pd.set_option("display.max_columns", None)
     df.sort_values(by="poi_distance", ascending=False)
     print(df.columns)
+    df = df.fillna(np.nan)
     return df
