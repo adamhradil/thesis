@@ -3,7 +3,7 @@ from disposition import Disposition
 from property_type import PropertyType
 from furnished import Furnished
 from geopy import Point
-
+import pandas as pd
 
 class UserPreferences:
     def __init__(self) -> None:
@@ -36,3 +36,10 @@ class UserPreferences:
         self.floor: None | int = None  # 2. and higher?
 
         self.description: None | str = None  # description contains a word?
+
+    def filter_listings(self, df: pd.DataFrame) -> pd.DataFrame:
+        if self.min_area:
+            df = df[df["area"] >= self.min_area]
+        if self.max_area:
+            df = df[df["area"] <= self.max_area]
+        return df

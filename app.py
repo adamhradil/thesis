@@ -108,14 +108,6 @@ if __name__ == "__main__":
         sys.exit(1)
     print(repr(tuple(poi_point)))
 
-    preferences = UserPreferences()
-    preferences.location = "Praha"
-    preferences.points_of_interest = [poi_point]
-    preferences.disposition = [Disposition.ONE_PLUS_KK]
-    preferences.min_area = 50
-    preferences.max_area = 100
-    preferences.max_price = 30000
-
     balcony_filter(listings)
 
     db = DatabaseWrapper(DB_FILE)
@@ -165,4 +157,47 @@ if __name__ == "__main__":
     if START != 0.0 and END != 0.0:
         print(f"crawling finished in {END - START}s")
 
+    preferences = UserPreferences()
+    preferences.location = "Praha"
+    preferences.points_of_interest = [poi_point]
+    preferences.disposition = [Disposition.TWO_PLUS_KK, Disposition.TWO_PLUS_ONE, Disposition.THREE_PLUS_KK, Disposition.THREE_PLUS_ONE]
+    preferences.min_area = 75
+    preferences.max_area = 79
+    preferences.max_price = 50000
+    preferences.floor = 3  # 3. and higher
+    preferences.furnished = True
+    preferences.garden = True
+
     df = clean_listing_database(DB_FILE)
+
+    df = df[
+        [
+            "address",
+            "area",
+            "rent",
+            "poi_distance",
+            "disposition",
+            "floor",
+            "furnished",
+            "garden",
+            "type",
+            "status",
+            "ownership",
+            "balcony",
+            "cellar",
+            "loggie",
+            "elevator",
+            "terrace",
+            "garage",
+            "parking",
+            "gps_lat",
+            "gps_lon",
+            "url",
+            "description",
+            "available_from",
+            "created",
+            "updated",
+            "last_seen",
+        ]
+    ]
+    df = preferences.filter_listings(df)

@@ -458,28 +458,28 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # # Normalize columns
 
     # %%
-    for col in ordinal + ratio:
-        print(col)
-        max_val = df[col].max()
-        min_val = df[col].min()
-        denominator = max_val - min_val
-        if denominator == 0:
-            denominator = 1e-10  # Add a small epsilon value to avoid division by zero
-        df[col] = (df[col] - min_val) / denominator
+    # for col in ordinal + ratio:
+    #     print(col)
+    #     max_val = df[col].max()
+    #     min_val = df[col].min()
+    #     denominator = max_val - min_val
+    #     if denominator == 0:
+    #         denominator = 1e-10  # Add a small epsilon value to avoid division by zero
+    #     df[col] = (df[col] - min_val) / denominator
 
-        print(df[col].value_counts(bins=10, sort=False))
+    #     print(df[col].value_counts(bins=10, sort=False))
 
-    # %% [markdown]
-    # # Calculate score
+    # # %% [markdown]
+    # # # Calculate score
 
-    # %%
-    # sum values of all ordinal and ratio columns
-    df["sum"] = df[ordinal + ratio].sum(axis=1)
-    # normalize the sum
-    df["sum"] = (df["sum"] - df["sum"].min()) / (df["sum"].max() - df["sum"].min())
+    # # %%
+    # # sum values of all ordinal and ratio columns
+    # df["sum"] = df[ordinal + ratio].sum(axis=1)
+    # # normalize the sum
+    # df["sum"] = (df["sum"] - df["sum"].min()) / (df["sum"].max() - df["sum"].min())
 
-    # %%
-    print(ordinal + ratio)
+    # # %%
+    # print(ordinal + ratio)
     # sort df by sum
     pd.set_option("display.max_columns", None)
     df.sort_values(by="poi_distance", ascending=False)
