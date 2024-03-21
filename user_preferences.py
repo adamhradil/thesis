@@ -1,11 +1,10 @@
 from datetime import date
+import pandas as pd  # type: ignore
+from geopy import Point  # type: ignore
 from disposition import Disposition
 from property_status import PropertyStatus
 from property_type import PropertyType
 from furnished import Furnished
-from geopy import Point
-import pandas as pd
-from disposition import Disposition
 
 
 class UserPreferences:
@@ -58,6 +57,9 @@ class UserPreferences:
             df = df[df["rent"] >= self.min_price]
         if self.max_price:
             df = df[df["rent"] <= self.max_price]
+        if self.available_from:
+            df = df[df["available_from"] >= self.available_from]
+
         if self.balcony is not None:
             if self.balcony is True:
                 df = df[df["balcony"] == 1]
@@ -93,6 +95,7 @@ class UserPreferences:
                 df = df[df["parking"] == 1]
             else:
                 df = df[df["parking"] != 1]
+
         if self.garden is not None:
             if self.garden is True:
                 df = df[df["garden"].isnull() == False]
@@ -102,11 +105,7 @@ class UserPreferences:
         if self.description:
             df = df[df["description"].str.contains(self.description, case=False, na=False)]
 
-        if self.available_from:
-            df = df[df["available_from"] >= self.available_from]
-
         if self.location:
             df = df[df["address"].str.contains(self.location, case=False, na=False)]
-
 
         return df
