@@ -332,5 +332,5 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # %%
     df.floor = df.floor.apply(lambda x: int(x) if isinstance(x, str) else x)
 
-    df = df.fillna(np.nan)
+    df = df.infer_objects(copy=False).fillna(np.nan)
     return df

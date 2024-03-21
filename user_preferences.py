@@ -1,14 +1,12 @@
 from datetime import date
+import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 from geopy import Point  # type: ignore
+from geopy.distance import distance  # type: ignore
 from disposition import Disposition
 from property_status import PropertyStatus
 from property_type import PropertyType
 from furnished import Furnished
-from geopy.distance import distance  # type: ignore
-from geopy.geocoders import Nominatim  # type: ignore
-from geopy.point import Point  # type: ignore
-import numpy as np  # type: ignore
 
 
 class UserPreferences:
@@ -114,88 +112,71 @@ class UserPreferences:
 
         return df
 
-    def get_point(self, address) -> None | Point:
-        geolocator = Nominatim(user_agent="distance_calculator")
-        location = geolocator.geocode(address)
-        if location:
-            return Point(location.latitude, location.longitude)  # type: ignore
-        else:
-            return None
-
     def calculate_score(self, df: pd.DataFrame) -> pd.DataFrame:
-        # %% [markdown]
-        # ## POI Distance
+        if self.points_of_interest is not None:
+            # https://stackoverflow.com/questions/37885798/how-to-calculate-the-midpoint-of-several-geolocations-in-python
+            x = 0.0
+            y = 0.0
+            z = 0.0
+
+            for point in self.points_of_interest:
+                if point is None:
+                    continue
+                latitude = np.radians(point.latitude)
+                longitude = np.radians(point.longitude)
+
+                x += np.cos(latitude) * np.cos(longitude)
+                y += np.cos(latitude) * np.sin(longitude)
+                z += np.sin(latitude)
+
+            total = len(self.points_of_interest)
+
+            x = x / total
+            y = y / total
+            z = z / total
+
+            central_longitude = np.degrees(np.arctan2(y, x))
+            central_square_root = np.sqrt(x * x + y * y)
+            central_latitude = np.degrees(np.arctan2(z, central_square_root))
+
+            # print(f"{central_latitude}, {central_longitude}")
+
+            for i, row in df.iterrows():
+                df.loc[i, "poi_distance"] = distance(  # type: ignore
+                    (central_latitude, central_longitude), (row.gps_lat, row.gps_lon)
+                ).m
 
         # %%
-        poi = "NTK Praha"
-        poi_point = self.get_point(poi)
+        # nominal = [
+        #     "address",
+        #     "description",
+        #     "disposition",
+        #     "ownership",
+        #     "status",
+        #     "type",
+        #     "url",
+        #     "floor",
+        #     "furnished",
+        #     'gps_lat',
+        #     'gps_lon'
+        # ]
+        # ordinal = [
+        #     "balcony",
+        #     "cellar",
+        #     "elevator",
+        #     "garage",
+        #     "loggie",
+        #     "parking",
+        #     "terrace",
+        # ]
+        # interval = ["available_from", "created", "last_seen", "updated"]
+        # ratio = ["area", "rent", "poi_distance", "garden"]
 
-        # %%
-        points_of_interest = [poi_point]
-
-        # https://stackoverflow.com/questions/37885798/how-to-calculate-the-midpoint-of-several-geolocations-in-python
-        x = 0.0
-        y = 0.0
-        z = 0.0
-
-        for point in points_of_interest:
-            if point is None:
-                continue
-            latitude = np.radians(point.latitude)
-            longitude = np.radians(point.longitude)
-
-            x += np.cos(latitude) * np.cos(longitude)
-            y += np.cos(latitude) * np.sin(longitude)
-            z += np.sin(latitude)
-
-        total = len(points_of_interest)
-
-        x = x / total
-        y = y / total
-        z = z / total
-
-        central_longitude = np.degrees(np.arctan2(y, x))
-        central_square_root = np.sqrt(x * x + y * y)
-        central_latitude = np.degrees(np.arctan2(z, central_square_root))
-
-        print(f"{central_latitude}, {central_longitude}")
-
-        for i, row in df.iterrows():
-            df.loc[i, "poi_distance"] = distance(  # type: ignore
-                (central_latitude, central_longitude), (row.gps_lat, row.gps_lon)
-            ).m
-
-        # %%
-        nominal = [
-            "address",
-            "description",
-            "disposition",
-            "ownership",
-            "status",
-            "type",
-            "url",
-            "floor",
-            "furnished",
-            'gps_lat',
-            'gps_lon'
-        ]
-        ordinal = [
-            "balcony",
-            "cellar",
-            "elevator",
-            "garage",
-            "loggie",
-            "parking",
-            "terrace",
-        ]
-        interval = ["available_from", "created", "last_seen", "updated"]
-        ratio = ["area", "rent", "poi_distance", "garden"]
-
-        # %%
-        for col in ordinal + ratio:
-            print(
-                f"{df[col].sort_values().value_counts(bins=5 if col not in ordinal else None)}\n"
-            )
+        # # %%
+        # for col in ordinal + ratio:
+        #     print(
+        #         f"{df[col].sort_values().value_counts(bins=5 if col not in ordinal else None)}\n"
+        #     )
 
         # %%
         # mapping = {
@@ -260,8 +241,5 @@ class UserPreferences:
         # # %%
         # print(ordinal + ratio)
         # sort df by sum
-        pd.set_option("display.max_columns", None)
-        df.sort_values(by="poi_distance", ascending=False)
-        print(df.columns)
 
-        return df
+        return df.sort_values(by="poi_distance", ascending=False)

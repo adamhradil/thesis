@@ -8,6 +8,8 @@ import sys
 from scrapy import signals  # type: ignore
 from scrapy.crawler import CrawlerProcess  # type: ignore
 from scrapy.exporters import JsonItemExporter  # type: ignore
+from geopy.geocoders import Nominatim  # type: ignore
+from geopy import Point  # type: ignore
 
 from database_wrapper import DatabaseWrapper
 
@@ -20,11 +22,21 @@ from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 from listing import Listing
 from user_preferences import UserPreferences
 from disposition import Disposition
-from listings_clearner import clean_listing_database, get_point
+from listings_clearner import clean_listing_database
+
 
 # from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 
 items = []
+
+
+def get_point(address) -> None | Point:
+    geolocator = Nominatim(user_agent="distance_calculator")
+    location = geolocator.geocode(address)
+    if location:
+        return Point(location.latitude, location.longitude)  # type: ignore
+    else:
+        return None
 
 
 def balcony_filter(listings_list: list[Listing]):
@@ -109,9 +121,8 @@ if __name__ == "__main__":
     if poi_point is None:
         print("Could not find the point of interest")
         sys.exit(1)
-    print(repr(tuple(poi_point)))
 
-    balcony_filter(listings)
+    # balcony_filter(listings)
 
     db = DatabaseWrapper(DB_FILE)
     db.create_table()
