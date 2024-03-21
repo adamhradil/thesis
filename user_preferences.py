@@ -31,7 +31,7 @@ class UserPreferences:
         self.parking: None | bool = None
         self.terrace: None | bool = None
 
-        self.type: None | PropertyType = None
+        self.type: None | list[PropertyType] = None
         self.furnished: None | Furnished = None
         self.status: None | str = None
 
@@ -42,6 +42,8 @@ class UserPreferences:
     def filter_listings(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.disposition:
             df = df[df["disposition"].isin([d.value for d in self.disposition])]
+        if self.type:
+            df = df[df["type"].isin([d.value for d in self.type])]
         if self.min_area:
             df = df[df["area"] >= self.min_area]
         if self.max_area:

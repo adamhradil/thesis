@@ -319,22 +319,22 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # 'type'
     df.type.unique()
     df.loc[:, "type"] = df["type"].apply(
+        lambda x: SrealityUrlBuilder.map_building_type(x) if isinstance(x, int) else x
+    )
+    df.loc[:, "type"] = df["type"].apply(
         lambda x: (
-            x.replace("Cihla", "cihlova")
-            .replace("Panel", "panelova")
-            .replace("Smíšená", "ostatni")
-            .replace("Skeletová", "ostatni")
-            .replace("Nízkoenergetická", "ostatni")
-            .replace("Montovaná", "ostatni")
-            .replace("Dřevostavba", "ostatni")
-            .replace("Kamenná", "ostatni")
-            .replace("Ostatní", "ostatni")
+            x.replace("cihlova", "Cihla")
+            .replace("panelova", "Panel")
+            .replace("ostatni", "Ostatní")
+            .replace("Smíšená", "Ostatní")
+            .replace("Skeletová", "Ostatní")
+            .replace("Nízkoenergetická", "Ostatní")
+            .replace("Montovaná", "Ostatní")
+            .replace("Dřevostavba", "Ostatní")
+            .replace("Kamenná", "Ostatní")
             if isinstance(x, str)
             else x
         )
-    )
-    df.loc[:, "type"] = df["type"].apply(
-        lambda x: SrealityUrlBuilder.map_building_type(x) if isinstance(x, int) else x
     )
     df.type.unique()
 

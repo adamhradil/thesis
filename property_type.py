@@ -2,6 +2,6 @@ from enum import Enum
 
 
 class PropertyType(Enum):
-    CONCRETE = "panelova"
-    BRICK = "cihlova"
-    OTHER = "ostatni"
+    CONCRETE = "Panel"
+    BRICK = "Cihla"
+    OTHER = "Ostatní"
