@@ -98,7 +98,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
         df.loc[df["available_from"] == "Ihned", "updated"],
         format="%Y-%m-%d %H:%M:%S.%f",
         errors="coerce",
-    )
+    ).dt.date
 
     # %%
     # try parsing the date for all non empty fields
@@ -113,7 +113,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
         df.loc[~invalid_indices, "available_from"],
         format="%d.%m.%Y",
         errors="coerce",
-    )
+    ).dt.date
 
     # %% [markdown]
     # ## Balcony
@@ -487,4 +487,5 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # sort df by sum
     pd.set_option("display.max_columns", None)
     df.sort_values(by="poi_distance", ascending=False)
+    print(df.columns)
     return df
