@@ -1,5 +1,6 @@
 from datetime import datetime
 from disposition import Disposition
+from property_status import PropertyStatus
 from property_type import PropertyType
 from furnished import Furnished
 from geopy import Point
@@ -32,8 +33,8 @@ class UserPreferences:
         self.terrace: None | bool = None
 
         self.type: None | list[PropertyType] = None
-        self.furnished: None | Furnished = None
-        self.status: None | str = None
+        self.furnished: None | list[Furnished] = None
+        self.status: None | list[PropertyStatus] = None
 
         self.floor: None | int = None  # 2. and higher?
 
@@ -44,6 +45,11 @@ class UserPreferences:
             df = df[df["disposition"].isin([d.value for d in self.disposition])]
         if self.type:
             df = df[df["type"].isin([d.value for d in self.type])]
+        if self.furnished:
+            df = df[df["furnished"].isin([d.value for d in self.furnished])]
+        if self.status:
+            df = df[df["status"].isin([d.value for d in self.status])]
+
         if self.min_area:
             df = df[df["area"] >= self.min_area]
         if self.max_area:

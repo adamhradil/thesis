@@ -12,6 +12,8 @@ from scrapy.exporters import JsonItemExporter  # type: ignore
 from database_wrapper import DatabaseWrapper
 
 from bezrealitky_scraper.bezrealitky.spiders.search_flats import SearchFlatsSpider
+from furnished import Furnished
+from property_status import PropertyStatus
 from property_type import PropertyType
 from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 
@@ -171,6 +173,8 @@ if __name__ == "__main__":
     preferences.garden = False
     preferences.floor = 3
     preferences.type = [PropertyType.BRICK]
+    preferences.furnished = [Furnished.YES]
+    preferences.status = [PropertyStatus.NEW]
 
     df = clean_listing_database(DB_FILE)
 
