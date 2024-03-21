@@ -161,12 +161,14 @@ if __name__ == "__main__":
     preferences.location = "Praha"
     preferences.points_of_interest = [poi_point]
     preferences.disposition = [Disposition.TWO_PLUS_KK, Disposition.TWO_PLUS_ONE, Disposition.THREE_PLUS_KK, Disposition.THREE_PLUS_ONE]
-    preferences.min_area = 75
-    preferences.max_area = 79
-    preferences.max_price = 50000
-    preferences.floor = 3  # 3. and higher
-    preferences.furnished = True
-    preferences.garden = True
+    # preferences.min_area = 75
+    # preferences.max_area = 79
+    # preferences.min_price = 25000
+    # preferences.max_price = 30000
+    preferences.balcony = True
+    preferences.terrace = True
+    preferences.garden = False
+    preferences.floor = 3
 
     df = clean_listing_database(DB_FILE)
 

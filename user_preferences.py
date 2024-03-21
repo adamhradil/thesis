@@ -4,6 +4,8 @@ from property_type import PropertyType
 from furnished import Furnished
 from geopy import Point
 import pandas as pd
+from disposition import Disposition
+
 
 class UserPreferences:
     def __init__(self) -> None:
@@ -38,8 +40,56 @@ class UserPreferences:
         self.description: None | str = None  # description contains a word?
 
     def filter_listings(self, df: pd.DataFrame) -> pd.DataFrame:
+        if self.disposition:
+            df = df[df["disposition"].isin([d.value for d in self.disposition])]
         if self.min_area:
             df = df[df["area"] >= self.min_area]
         if self.max_area:
             df = df[df["area"] <= self.max_area]
+        if self.min_price:
+            df = df[df["rent"] >= self.min_price]
+        if self.max_price:
+            df = df[df["rent"] <= self.max_price]
+        if self.balcony is not None:
+            if self.balcony is True:
+                df = df[df["balcony"] == 1]
+            else:
+                df = df[df["balcony"] != 1]
+        if self.cellar is not None:
+            if self.cellar is True:
+                df = df[df["cellar"] == 1]
+            else:
+                df = df[df["cellar"] != 1]
+        if self.loggie is not None:
+            if self.loggie is True:
+                df = df[df["loggie"] == 1]
+            else:
+                df = df[df["loggie"] != 1]
+        if self.elevator is not None:
+            if self.elevator is True:
+                df = df[df["elevator"] == 1]
+            else:
+                df = df[df["elevator"] != 1]
+        if self.terrace is not None:
+            if self.terrace is True:
+                df = df[df["terrace"] == 1]
+            else:
+                df = df[df["terrace"] != 1]
+        if self.garage is not None:
+            if self.garage is True:
+                df = df[df["garage"] == 1]
+            else:
+                df = df[df["garage"] != 1]
+        if self.parking is not None:
+            if self.parking is True:
+                df = df[df["parking"] == 1]
+            else:
+                df = df[df["parking"] != 1]
+        if self.garden is not None:
+            if self.garden is True:
+                df = df[df["garden"].isnull() == False]
+            else:
+                df = df[df["garden"].isnull() == True]
+        if self.floor:
+            df = df[df["floor"] >= self.floor]
         return df
