@@ -175,6 +175,9 @@ if __name__ == "__main__":
     preferences.type = [PropertyType.BRICK]
     preferences.furnished = [Furnished.YES]
     preferences.status = [PropertyStatus.NEW]
+    preferences.description = "teras"
+    preferences.available_from = datetime.date(2024, 3, 21)
+    preferences.location = "Karlín"
 
     df = clean_listing_database(DB_FILE)
 

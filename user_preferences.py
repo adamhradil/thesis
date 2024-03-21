@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 from disposition import Disposition
 from property_status import PropertyStatus
 from property_type import PropertyType
@@ -21,7 +21,7 @@ class UserPreferences:
         self.min_price: None | int = None
         self.max_price: None | int = None
 
-        self.available_from: None | datetime = None
+        self.available_from: None | date = None
 
         self.balcony: None | bool = None
         self.cellar: None | bool = None
@@ -98,6 +98,15 @@ class UserPreferences:
                 df = df[df["garden"].isnull() == False]
             else:
                 df = df[df["garden"].isnull() == True]
-        if self.floor:
-            df = df[df["floor"] >= self.floor]
+
+        if self.description:
+            df = df[df["description"].str.contains(self.description, case=False, na=False)]
+
+        if self.available_from:
+            df = df[df["available_from"] >= self.available_from]
+
+        if self.location:
+            df = df[df["address"].str.contains(self.location, case=False, na=False)]
+
+
         return df
