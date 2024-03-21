@@ -59,6 +59,8 @@ class UserPreferences:
             df = df[df["rent"] >= self.min_price]
         if self.max_price:
             df = df[df["rent"] <= self.max_price]
+        if self.floor:
+            df = df[df["floor"] >= self.floor]
         if self.available_from:
             df = df[df["available_from"] >= self.available_from]
 
@@ -242,4 +244,4 @@ class UserPreferences:
         # print(ordinal + ratio)
         # sort df by sum
 
-        return df.sort_values(by="poi_distance", ascending=False)
+        return df.sort_values(by="poi_distance", ascending=True)
