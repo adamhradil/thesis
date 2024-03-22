@@ -41,6 +41,56 @@ class UserPreferences:
 
         self.description: None | str = None  # description contains a word?
 
+    # initialize class from json
+    def from_dict(cls, data):
+        user_preferences = cls()
+        for key, value in data.items():
+            if value is None:
+                continue
+            if key == "disposition":
+                user_preferences.disposition = [Disposition(d) for d in value]
+            elif key == "type":
+                user_preferences.type = [PropertyType(t) for t in value]
+            elif key == "furnished":
+                user_preferences.furnished = [Furnished(f) for f in value]
+            elif key == "status":
+                user_preferences.status = [PropertyStatus(s) for s in value]
+            elif key == "available_from":
+                user_preferences.available_from = date.fromisoformat(value)
+            elif key == "points_of_interest":
+                user_preferences.points_of_interest = [
+                    Point(p["latitude"], p["longitude"]) for p in value
+                ]
+            else:
+                setattr(user_preferences, key, value)
+        return user_preferences
+
+    # make class serializable to json
+    def to_dict(self):
+        return {
+            "location": self.location,
+            "points_of_interest": self.points_of_interest,
+            "disposition": [d.value for d in self.disposition] if self.disposition else None,
+            "min_area": self.min_area,
+            "max_area": self.max_area,
+            "min_price": self.min_price,
+            "max_price": self.max_price,
+            "available_from": self.available_from.isoformat() if self.available_from else None,
+            "balcony": self.balcony,
+            "cellar": self.cellar,
+            "elevator": self.elevator,
+            "garage": self.garage,
+            "garden": self.garden,
+            "loggie": self.loggie,
+            "parking": self.parking,
+            "terrace": self.terrace,
+            "type": [t.value for t in self.type] if self.type else None,
+            "furnished": [f.value for f in self.furnished] if self.furnished else None,
+            "status": [s.value for s in self.status] if self.status else None,
+            "floor": self.floor,
+            "description": self.description,
+        }
+
     def filter_listings(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.disposition:
             df = df[df["disposition"].isin([d.value for d in self.disposition])]
@@ -117,7 +167,7 @@ class UserPreferences:
         return df
 
     def calculate_score(self, df: pd.DataFrame, scoring_weights: dict) -> pd.DataFrame:
-        if self.points_of_interest is not None:
+        if self.points_of_interest is not None and len(self.points_of_interest) > 0:
             # https://stackoverflow.com/questions/37885798/how-to-calculate-the-midpoint-of-several-geolocations-in-python
             x = 0.0
             y = 0.0
