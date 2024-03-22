@@ -37,20 +37,25 @@ if webhook_url == "" or webhook_url is None:
     print("Webhook URL not found in .env file")
     sys.exit(1)
 
-def send_listings(df: pd.DataFrame):
-    df.sort_values(by="sum", ascending=False, inplace=True)
+def prepare_output(df: pd.DataFrame):
+    df = df.sort_values(by="sum", ascending=False, inplace=False)
     df["rent"] = df["rent"].apply(lambda x: str(int(x)) + " Kč")
     df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2")
     df["sum"] = df["sum"].apply(lambda x: str(int(round(x, 2) * 100)) + "/100")
     listings_to_send = df.head(5)
     print(
         tabulate(
-            listings_to_send[["sum", "address", "rent", 'disposition', "area", "url"]],
+            listings_to_send[["sum", "address", "rent", "disposition", "area", "url"]],
             tablefmt="grid",
-            headers=["id", "sum", "address", "rent", 'disposition', "area", "url"],
+            headers=["id", "sum", "address", "rent", "disposition", "area", "url"],
         )
     )
+    return df.head(5)
 
+
+def send_listings(df: pd.DataFrame):
+
+    df = prepare_output(df)
     webhook = DiscordWebhook(url=webhook_url, username="Real Estate")
 
     embed = DiscordEmbed(
@@ -64,12 +69,17 @@ def send_listings(df: pd.DataFrame):
     embed.set_footer(text="Embed Footer Text")
     embed.set_timestamp()
     # Set `inline=False` for the embed field to occupy the whole line
-    for l in listings_to_send.to_dict(orient="records"):
-        embed.add_embed_field(name=f"{l['sum']} - {l['address']}",
-                              value=f"{l['rent']}\n{l['disposition']} - {l['area']}\n{l['url']}", inline=False)
+    for l in df.to_dict(orient="records"):
+        embed.add_embed_field(
+            name=f"{l['sum']} - {l['address']}",
+            value=f"{l['rent']}\n{l['disposition']} - {l['area']}\n{l['url']}",
+            inline=False,
+        )
 
     webhook.add_embed(embed)
     response = webhook.execute()
+    if response.status_code != 200:
+        print("Error sending the message to discord")
 
 
 def get_point(address) -> None | Point:
@@ -81,103 +91,29 @@ def get_point(address) -> None | Point:
         return None
 
 
-def balcony_filter(listings_list: list[Listing]):
-    l1 = []
-    l2 = []
-    l3 = []
-    l4 = []
-    for advert in listings_list:
-        if "balk" in advert.description.lower():
-            l1.append(advert)
-        if advert.balcony:
-            l2.append(advert)
-        if "balk" in advert.description.lower() and advert.balcony:
-            l3.append(advert)
-        if "balk" in advert.description.lower() and not advert.balcony:
-            l4.append(advert)
-
-    print(f"{len(l1)} listings contain balk in description")
-    print(f"{len(l2)} listings contain contain balk in the table")
-    print(f"{len(l3)} listings contain contain balk in description and in table")
-    print(f"{len(l4)} listings contain contain balk in description and not in table")
-    return
-
-
 def item_scraped(item):
     print(item["url"])
     items.append(item)
 
 
-if __name__ == "__main__":
-
-    CRAWL = True
-    # FILE = "bezrealitky_items.json"
-    # FILE = "sreality_items.json"
-    FILE = "all_items.json"
-    POI = "NTK Praha"
-    DB_FILE = "listings.db"
-    START = 0.0
-    END = 0.0
-
-    crawl_time = datetime.datetime.now()
-
-    if CRAWL:
-        process = CrawlerProcess(
-            settings={
-                "LOG_LEVEL": "INFO",
-                "DEFAULT_REQUEST_HEADERS": {
-                    "User-Agent": """Mozilla/5.0 (Windows NT 10.0; Win64; x64)
-                        AppleWebKit/537.36 (KHTML, like Gecko)
-                        Chrome/60.0.3112.113 Safari/537.36""",
-                },
-            }
-        )
-
-        START = time.time()
-
-        crawler = process.create_crawler(SearchFlatsSpider)
-        crawler.signals.connect(item_scraped, signal=signals.item_scraped)
-        crawler2 = process.create_crawler(SrealitySpider)
-        crawler2.signals.connect(item_scraped, signal=signals.item_scraped)
-        process.crawl(crawler)
-        process.crawl(crawler2)
-        process.start()
-
-        with open(file=FILE, mode="wb") as f:
-            exporter = JsonItemExporter(f)
-            exporter.start_exporting()
-            for i in items:
-                exporter.export_item(i)
-            exporter.finish_exporting()
-
-        END = time.time()
-    else:
-        with open(FILE, "r", encoding="utf-8") as f:
-            items = json.load(f)
-
-    listings = []
-    for i in items:
-        listings.append(Listing(i))
-
-    poi_point = get_point(POI)
-    poi_point_2 = get_point("GRAM Praha")
-    if poi_point is None or poi_point_2 is None:
-        print("Could not find the point of interest")
-        sys.exit(1)
-
-    # balcony_filter(listings)
-
-    db = DatabaseWrapper(DB_FILE)
+def update_db(db_file: str, last_crawl_time: datetime.datetime):
+    print("updating the listing database")
+    start = time.time()
+    db = DatabaseWrapper(db_file)
     db.create_table()
+    if listings is None:
+        print("no listings found")
+        return
     for listing in listings:
         found_listing = db.get_listing(listing.id)
         if found_listing:
             if (
                 found_listing != listing
+                and found_listing.updated
                 and datetime.datetime.strptime(
                     found_listing.updated, "%Y-%m-%d %H:%M:%S.%f"
                 )
-                < crawl_time
+                < last_crawl_time
             ):
                 print(f"listing {listing.id} has changed:", end=" ")
                 for attr, value in listing.__dict__.items():
@@ -195,54 +131,27 @@ if __name__ == "__main__":
                 db.update_listing(
                     listing,
                     created=found_listing.created,
-                    date_updated=crawl_time,
-                    last_seen=crawl_time,
+                    date_updated=last_crawl_time,
+                    last_seen=last_crawl_time,
                 )
             else:
                 db.update_listing(
                     listing,
                     created=found_listing.created,
                     date_updated=found_listing.updated,
-                    last_seen=crawl_time,
+                    last_seen=last_crawl_time,
                 )
             continue
-        db.insert_listing(listing=listing, date_created=crawl_time)
+        db.insert_listing(listing=listing, date_created=last_crawl_time)
         print(f"found a new listing: {listing.id}")
-    df = db.get_df()
     db.close_conn()
+    end = time.time()
+    print(f"updating db took {end - start}s")
 
-    if START != 0.0 and END != 0.0:
-        print(f"crawling finished in {END - START}s")
 
-    preferences = UserPreferences()
-    # preferences.location = "Praha"
-    # preferences.points_of_interest = [poi_point, poi_point_2]
-    # preferences.disposition = [Disposition.TWO_PLUS_KK, Disposition.TWO_PLUS_ONE, Disposition.THREE_PLUS_KK, Disposition.THREE_PLUS_ONE, Disposition.FOUR_PLUS_KK, Disposition.FOUR_PLUS_ONE]
-    # preferences.min_area = 50
-    # preferences.max_area = 100
-    # preferences.min_price = 25000
-    # preferences.max_price = 30000
-    # preferences.balcony = True
-    # preferences.terrace = True
+def get_res(db_file: str, user_preferences: UserPreferences, user_weights: dict):
 
-    # preferences.floor = 3
-
-    scoring_weights = {
-        "normalized_area": 0.9,
-        "normalized_rent": 0.9,
-        "normalized_disposition": 0.9,
-        "normalized_garden": 0.9,
-        "normalized_balcony": 0.9,
-        "normalized_cellar": 0.9,
-        "normalized_loggie": 0.9,
-        "normalized_elevator": 0.9,
-        "normalized_terrace": 0.9,
-        "normalized_garage": 0.9,
-        "normalized_parking": 0.9,
-        "normalized_poi_distance": 2.1,
-    }
-
-    df = clean_listing_database(DB_FILE)
+    df = clean_listing_database(db_file)
 
     df = df[
         [
@@ -273,6 +182,106 @@ if __name__ == "__main__":
             "last_seen",
         ]
     ]
-    df = preferences.filter_listings(df)
-    df = preferences.calculate_score(df, scoring_weights)
+    df = user_preferences.filter_listings(df)
+    df = user_preferences.calculate_score(df, user_weights)
     send_listings(df)
+
+
+def crawl_lisings(json_output: str):
+    process = CrawlerProcess(
+        settings={
+            "LOG_LEVEL": "INFO",
+            "DEFAULT_REQUEST_HEADERS": {
+                "User-Agent": """Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+                    AppleWebKit/537.36 (KHTML, like Gecko)
+                    Chrome/60.0.3112.113 Safari/537.36""",
+            },
+        }
+    )
+
+    start = time.time()
+
+    crawler = process.create_crawler(SearchFlatsSpider)
+    crawler.signals.connect(item_scraped, signal=signals.item_scraped)
+    crawler2 = process.create_crawler(SrealitySpider)
+    crawler2.signals.connect(item_scraped, signal=signals.item_scraped)
+    process.crawl(crawler)
+    process.crawl(crawler2)
+    process.start()
+
+    with open(file=json_output, mode="wb") as output_file:
+        exporter = JsonItemExporter(output_file)
+        exporter.start_exporting()
+        for item in items:
+            exporter.export_item(item)
+        exporter.finish_exporting()
+
+    end = time.time()
+
+    if start != 0.0 and end != 0.0:
+        print(f"crawling finished in {end - start}s")
+
+
+if __name__ == "__main__":
+
+    CRAWL = True
+    SCRAPER_OUTPUT_FILE = "all_items.json"
+    POI = "NTK Praha"
+    DB_FILE = "listings.db"
+
+    crawl_time = datetime.datetime.now()
+
+    if CRAWL:
+        crawl_lisings(SCRAPER_OUTPUT_FILE)
+    else:
+        with open(SCRAPER_OUTPUT_FILE, "r", encoding="utf-8") as f:
+            items = json.load(f)
+
+    listings = []
+    for i in items:
+        listings.append(Listing(i))
+
+    update_db(DB_FILE, crawl_time)
+
+    poi_point = get_point(POI)
+    poi_point_2 = get_point("GRAM Praha")
+    if poi_point is None or poi_point_2 is None:
+        print("Could not find the point of interest")
+        sys.exit(1)
+
+    preferences = UserPreferences()
+    # preferences.location = "Praha"
+    # preferences.points_of_interest = [poi_point, poi_point_2]
+    # preferences.disposition = [
+    #     Disposition.TWO_PLUS_KK,
+    #     Disposition.TWO_PLUS_ONE,
+    #     Disposition.THREE_PLUS_KK,
+    #     Disposition.THREE_PLUS_ONE,
+    #     Disposition.FOUR_PLUS_KK,
+    #     Disposition.FOUR_PLUS_ONE,
+    # ]
+    # preferences.min_area = 50
+    preferences.max_area = 80
+    # preferences.min_price = 25000
+    preferences.max_price = 30000
+    # preferences.balcony = True
+    # preferences.terrace = True
+
+    # preferences.floor = 3
+
+    scoring_weights = {
+        "normalized_area": 3,
+        "normalized_rent": 3,
+        "normalized_disposition": 0,
+        "normalized_garden": 0,
+        "normalized_balcony": 1.5,
+        "normalized_cellar": 0,
+        "normalized_loggie": 0,
+        "normalized_elevator": 0,
+        "normalized_terrace": 1.5,
+        "normalized_garage": 0,
+        "normalized_parking": 0,
+        "normalized_poi_distance": 3,
+    }
+
+    get_res(DB_FILE, preferences, scoring_weights)
