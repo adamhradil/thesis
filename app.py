@@ -4,38 +4,53 @@ import datetime
 import json
 import time
 import sys
+import os
 
 from scrapy import signals  # type: ignore
 from scrapy.crawler import CrawlerProcess  # type: ignore
 from scrapy.exporters import JsonItemExporter  # type: ignore
 from geopy.geocoders import Nominatim  # type: ignore
 from geopy import Point  # type: ignore
-import pandas as pd
-
+import pandas as pd  # type: ignore
+from tabulate import tabulate  # type: ignore
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
-from database_wrapper import DatabaseWrapper
 
 from bezrealitky_scraper.bezrealitky.spiders.search_flats import SearchFlatsSpider
+from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
+
+from database_wrapper import DatabaseWrapper
 from furnished import Furnished
 from property_status import PropertyStatus
 from property_type import PropertyType
-from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
-
 from listing import Listing
 from user_preferences import UserPreferences
 from disposition import Disposition
 from listings_clearner import clean_listing_database
+from dotenv import load_dotenv
 
-
-# from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
 
 items = []
-
+load_dotenv()
+webhook_url = os.getenv("WEBHOOK_URL")
+if webhook_url == "" or webhook_url is None:
+    print("Webhook URL not found in .env file")
+    sys.exit(1)
 
 def send_listings(df: pd.DataFrame):
     df.sort_values(by="sum", ascending=False, inplace=True)
-    listings_to_send = df.loc[df['sum'] >= 0.62].head(5).to_dict(orient='records')
+    df["rent"] = df["rent"].apply(lambda x: str(int(x)) + " Kč")
+    df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2")
+    df["sum"] = df["sum"].apply(lambda x: str(int(round(x, 2) * 100)) + "/100")
+    listings_to_send = df.head(5)
+
+    print(
+        tabulate(
+            listings_to_send[["sum", "address", "rent", "area", "url"]],
+            tablefmt="grid",
+            headers=["id", "sum", "address", "rent", "area", "url"],
+        )
+    )
 
     webhook = DiscordWebhook(url=webhook_url, username="Real Estate")
 
@@ -50,9 +65,9 @@ def send_listings(df: pd.DataFrame):
     embed.set_footer(text="Embed Footer Text")
     embed.set_timestamp()
     # Set `inline=False` for the embed field to occupy the whole line
-    for l in listings_to_send:
-        embed.add_embed_field(name=f"{int(round(l['sum'], 2)*100)}/100 - {l['address']}", value=f"{int(l['rent'])} Kč\n{int(l['area'])} m2\n{l['url']}", inline=False)
-
+    for l in listings_to_send.to_dict(orient="records"):
+        embed.add_embed_field(name=f"{l['sum']} - {l['address']}",
+                              value=f"{l['rent']}\n{l['area']}\n{l['url']}", inline=False)
 
     webhook.add_embed(embed)
     response = webhook.execute()

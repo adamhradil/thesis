@@ -7,3 +7,4 @@ venv/
 *.json
 *.db
 *.xlsx
+.env
