@@ -1,5 +1,4 @@
 *.zip
-templates/
 *.pyc
 venv/
 .venv/
