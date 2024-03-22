@@ -43,12 +43,11 @@ def send_listings(df: pd.DataFrame):
     df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2")
     df["sum"] = df["sum"].apply(lambda x: str(int(round(x, 2) * 100)) + "/100")
     listings_to_send = df.head(5)
-
     print(
         tabulate(
-            listings_to_send[["sum", "address", "rent", "area", "url"]],
+            listings_to_send[["sum", "address", "rent", 'disposition', "area", "url"]],
             tablefmt="grid",
-            headers=["id", "sum", "address", "rent", "area", "url"],
+            headers=["id", "sum", "address", "rent", 'disposition', "area", "url"],
         )
     )
 
@@ -67,7 +66,7 @@ def send_listings(df: pd.DataFrame):
     # Set `inline=False` for the embed field to occupy the whole line
     for l in listings_to_send.to_dict(orient="records"):
         embed.add_embed_field(name=f"{l['sum']} - {l['address']}",
-                              value=f"{l['rent']}\n{l['area']}\n{l['url']}", inline=False)
+                              value=f"{l['rent']}\n{l['disposition']} - {l['area']}\n{l['url']}", inline=False)
 
     webhook.add_embed(embed)
     response = webhook.execute()

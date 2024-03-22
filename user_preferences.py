@@ -203,4 +203,5 @@ class UserPreferences:
         scoring_columns = ["normalized_" + col for col in scoring_columns]
         # Calculate score
         df["sum"] = (df[scoring_columns] * pd.Series(scoring_weights)).sum(axis=1)/len(scoring_columns)
+        df.disposition = df.disposition.map({v: k for k, v in disposition_mapping.items()})
         return df
