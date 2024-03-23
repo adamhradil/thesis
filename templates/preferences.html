@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Set Preferences</h1>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.location.label }}<br>
+            {{ form.location(size=32) }}<br>
+        </p>
+        <p>
+            {{ form.points_of_interest.label }}<br>
+            {{ form.points_of_interest(size=32) }}<br>
+        </p>
+        <p>
+            {{ form.disposition.label }}<br>
+            {{ form.disposition() }}<br>
+        </p>
+        <!-- Repeat for other fields -->
+        <p>
+            {{ form.min_area.label }}<br>
+            {{ form.min_area() }}<br>
+        </p>
+        <p>
+            {{ form.max_area.label }}<br>
+            {{ form.max_area() }}<br>
+        </p>
+        <p>
+            {{ form.min_price.label }}<br>
+            {{ form.min_price() }}<br>
+        </p>
+        <p>
+            {{ form.max_price.label }}<br>
+            {{ form.max_price() }}<br>
+        </p>
+        <p>
+            {{ form.available_from.label }}<br>
+            {{ form.available_from() }}<br>
+        </p>
+        <p>
+            {{ form.balcony.label }}<br>
+            {{ form.balcony() }}<br>
+        </p>
+        <p>
+            {{ form.cellar.label }}<br>
+            {{ form.cellar() }}<br>
+        </p>
+        <p>
+            {{ form.elevator.label }}<br>
+            {{ form.elevator() }}<br>
+        </p>
+        <p>
+            {{ form.garage.label }}<br>
+            {{ form.garage() }}<br>
+        </p>
+        <p>
+            {{ form.garden.label }}<br>
+            {{ form.garden() }}<br>
+        </p>
+        <p>
+            {{ form.loggie.label }}<br>
+            {{ form.loggie() }}<br>
+        </p>
+        <p>
+            {{ form.parking.label }}<br>
+            {{ form.parking() }}<br>
+        </p>
+        <p>
+            {{ form.terrace.label }}<br>
+            {{ form.terrace() }}<br>
+        </p>
+        <p>
+            {{ form.type.label }}<br>
+            {{ form.type() }}<br>
+        </p>
+        <p>
+            {{ form.furnished.label }}<br>
+            {{ form.furnished() }}<br>
+        </p>
+        <p>
+            {{ form.status.label }}<br>
+            {{ form.status() }}<br>
+        </p>
+        <p>
+            {{ form.floor.label }}<br>
+            {{ form.floor() }}<br>
+        </p>
+        <p>
+            {{ form.description.label }}<br>
+            {{ form.description() }}<br>
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}

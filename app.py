@@ -14,7 +14,10 @@ from geopy import Point  # type: ignore
 import pandas as pd  # type: ignore
 from tabulate import tabulate  # type: ignore
 from discord_webhook import DiscordWebhook, DiscordEmbed
+from flask import Flask, render_template, flash, redirect, url_for, session
+from dotenv import load_dotenv
 
+from forms import UserPreferencesForm
 
 from bezrealitky_scraper.bezrealitky.spiders.search_flats import SearchFlatsSpider
 from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
@@ -27,7 +30,6 @@ from listing import Listing
 from user_preferences import UserPreferences
 from disposition import Disposition
 from listings_clearner import clean_listing_database
-from dotenv import load_dotenv
 
 
 items = []
@@ -36,6 +38,93 @@ webhook_url = os.getenv("WEBHOOK_URL")
 if webhook_url == "" or webhook_url is None:
     print("Webhook URL not found in .env file")
     sys.exit(1)
+
+app = Flask(__name__)
+app.config["SECRET_KEY"] = SECRET_KEY
+
+
+@app.route("/")
+def index():
+
+    preferences = UserPreferences()
+    # preferences.location = "Praha"
+    # preferences.points_of_interest = [poi_point, poi_point_2]
+    # preferences.disposition = [
+    #     Disposition.TWO_PLUS_KK,
+    #     Disposition.TWO_PLUS_ONE,
+    #     Disposition.THREE_PLUS_KK,
+    #     Disposition.THREE_PLUS_ONE,
+    #     Disposition.FOUR_PLUS_KK,
+    #     Disposition.FOUR_PLUS_ONE,
+    # ]
+    # preferences.min_area = 50
+    preferences.max_area = 80
+    # preferences.min_price = 25000
+    preferences.max_price = 30000
+    # preferences.balcony = True
+    # preferences.terrace = True
+
+    # preferences.floor = 3
+
+    scoring_weights = {
+        "normalized_area": 3,
+        "normalized_rent": 3,
+        "normalized_disposition": 0,
+        "normalized_garden": 0,
+        "normalized_balcony": 1.5,
+        "normalized_cellar": 0,
+        "normalized_loggie": 0,
+        "normalized_elevator": 0,
+        "normalized_terrace": 1.5,
+        "normalized_garage": 0,
+        "normalized_parking": 0,
+        "normalized_poi_distance": 3,
+    }
+
+    # if session['preferences'] is none, then redirect to preferences page
+    if session.get("preferences") is None:
+        return redirect(url_for("preferences"))
+
+
+    preferences = UserPreferences.from_dict(UserPreferences, data=session['preferences'])
+    print(preferences.to_dict())
+
+    df = get_res(DB_FILE, preferences, scoring_weights)
+
+    return render_template(
+        "index.html", utc_dt=datetime.datetime.utcnow(), listings_df=prepare_output(df)
+    )
+
+
+@app.route("/preferences", methods=["GET", "POST"])
+def preferences():
+    form = UserPreferencesForm()
+    if form.validate_on_submit():
+        flash("Preferences set successfully")
+        preferences = UserPreferences()
+        for key, value in form.data.items():
+            if value is None:
+                continue
+            if key == "csrf_token" or key == "submit":
+                continue
+            if key == "disposition":
+                preferences.disposition = [Disposition(x) for x in value]
+                continue
+            if key == "type":
+                preferences.type = [PropertyType(x) for x in value]
+                continue
+            if key == "furnished":
+                preferences.furnished = [Furnished(x) for x in value]
+                continue
+            if key == "status":
+                preferences.status = [PropertyStatus(x) for x in value]
+                continue
+            setattr(preferences, key, value)
+        session['preferences'] = preferences.to_dict()
+        # fill the form with default values
+        return redirect(url_for("index"))
+    return render_template("preferences.html", title="Set Preferences", form=form)
+
 
 def prepare_output(df: pd.DataFrame):
     df = df.sort_values(by="sum", ascending=False, inplace=False)
@@ -184,7 +273,8 @@ def get_res(db_file: str, user_preferences: UserPreferences, user_weights: dict)
     ]
     df = user_preferences.filter_listings(df)
     df = user_preferences.calculate_score(df, user_weights)
-    send_listings(df)
+    # send_listings(df)
+    return df
 
 
 def crawl_lisings(json_output: str):
@@ -224,7 +314,7 @@ def crawl_lisings(json_output: str):
 
 if __name__ == "__main__":
 
-    CRAWL = True
+    CRAWL = False
     SCRAPER_OUTPUT_FILE = "all_items.json"
     POI = "NTK Praha"
     DB_FILE = "listings.db"
@@ -241,7 +331,7 @@ if __name__ == "__main__":
     for i in items:
         listings.append(Listing(i))
 
-    update_db(DB_FILE, crawl_time)
+    # update_db(DB_FILE, crawl_time)
 
     poi_point = get_point(POI)
     poi_point_2 = get_point("GRAM Praha")
@@ -249,39 +339,5 @@ if __name__ == "__main__":
         print("Could not find the point of interest")
         sys.exit(1)
 
-    preferences = UserPreferences()
-    # preferences.location = "Praha"
-    # preferences.points_of_interest = [poi_point, poi_point_2]
-    # preferences.disposition = [
-    #     Disposition.TWO_PLUS_KK,
-    #     Disposition.TWO_PLUS_ONE,
-    #     Disposition.THREE_PLUS_KK,
-    #     Disposition.THREE_PLUS_ONE,
-    #     Disposition.FOUR_PLUS_KK,
-    #     Disposition.FOUR_PLUS_ONE,
-    # ]
-    # preferences.min_area = 50
-    preferences.max_area = 80
-    # preferences.min_price = 25000
-    preferences.max_price = 30000
-    # preferences.balcony = True
-    # preferences.terrace = True
 
-    # preferences.floor = 3
-
-    scoring_weights = {
-        "normalized_area": 3,
-        "normalized_rent": 3,
-        "normalized_disposition": 0,
-        "normalized_garden": 0,
-        "normalized_balcony": 1.5,
-        "normalized_cellar": 0,
-        "normalized_loggie": 0,
-        "normalized_elevator": 0,
-        "normalized_terrace": 1.5,
-        "normalized_garage": 0,
-        "normalized_parking": 0,
-        "normalized_poi_distance": 3,
-    }
-
-    get_res(DB_FILE, preferences, scoring_weights)
+    app.run(debug=True)
