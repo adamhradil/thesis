@@ -33,13 +33,14 @@ from listings_clearner import clean_listing_database
 
 
 CRAWL = False
-SCRAPER_OUTPUT_FILE = "all_items.json"
+LAST_CRAWL_FILE = "last_crawl.txt"
+SCRAPER_OUTPUT_FILE = "scraped_listings.json"
 POI = "NTK Praha"
 DB_FILE = "listings.db"
 items = []
 load_dotenv()
-webhook_url = os.getenv("WEBHOOK_URL")
-if webhook_url == "" or webhook_url is None:
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+if WEBHOOK_URL == "" or WEBHOOK_URL is None:
     print("Webhook URL not found in .env file")
     sys.exit(1)
 
@@ -105,14 +106,27 @@ def load_preferences() -> UserPreferences:
 def save_preferences(preferences: UserPreferences) -> None:
     with open("preferences.json", "w", encoding="utf-8") as f:
         f.write(json.dumps(preferences.to_dict()))
-        run_spiders(SCRAPER_OUTPUT_FILE)
-    else:
-        with open(SCRAPER_OUTPUT_FILE, "r", encoding="utf-8") as f:
-            items = json.load(f)
 
-    listings = []
-    for i in items:
-        listings.append(Listing(i))
+
+def crawl_regularly():
+    while True:
+        print(f"{datetime.datetime.utcnow().isoformat()}: starting crawling")
+        run_spiders(SCRAPER_OUTPUT_FILE)
+
+        listings = []
+        for i in items:
+            listings.append(Listing(i))
+
+        with open(LAST_CRAWL_FILE, "r", encoding="utf-8") as f:
+            crawl_time = datetime.datetime.fromisoformat(f.read())
+
+        update_listing_database(DB_FILE, listings, crawl_time)
+
+        sleep_duration = 900  # 15 minutes
+        print(f"{datetime.datetime.utcnow().isoformat()}: crawling finished, sleeping for {900}")
+        time.sleep(sleep_duration)
+        # #TODO: get preferences from somewhere
+        # get_listings()
 
 
 def get_listings(preferences):
@@ -144,7 +158,10 @@ def format_result(df: pd.DataFrame):
 
 def notify_user(df: pd.DataFrame):
     df = format_result(df)
-    webhook = DiscordWebhook(url=webhook_url, username="Real Estate")
+    if WEBHOOK_URL is None:
+        print("Webhook URL not found in .env file")
+        return
+    webhook = DiscordWebhook(url=WEBHOOK_URL, username="Real Estate")
 
     embed = DiscordEmbed(
         title="Embed Title", description="Your Embed Description", color="03b2f8"
@@ -306,12 +323,21 @@ def run_spiders(json_output: str):
         for item in items:
             exporter.export_item(item)
         exporter.finish_exporting()
+    print(f"{datetime.datetime.utcnow().isoformat()}: scraped items saved to {output_file}")
 
     end = time.time()
 
     if start != 0.0 and end != 0.0:
         print(f"crawling finished in {end - start}s")
 
+    # writing the last crawl time to a file
+    with open(LAST_CRAWL_FILE, "w", encoding="utf-8") as f:
+        f.write(datetime.datetime.utcnow().isoformat())
+
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    args = sys.argv[1:]
+    if len(args) > 0 and args[0] == "--crawl":
+        crawl_regularly()
+    else:
+        app.run(debug=True)
