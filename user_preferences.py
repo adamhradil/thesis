@@ -41,6 +41,21 @@ class UserPreferences:
 
         self.description: None | str = None  # description contains a word?
 
+        self.weight_area: None | float = None
+        self.weight_rent: None | float = None
+        self.weight_disposition: None | float = None
+        self.weight_garden: None | float = None
+        self.weight_balcony: None | float = None
+        self.weight_cellar: None | float = None
+        self.weight_loggie: None | float = None
+        self.weight_elevator: None | float = None
+        self.weight_terrace: None | float = None
+        self.weight_garage: None | float = None
+        self.weight_parking: None | float = None
+        self.weight_poi_distance: None | float = None
+
+
+
     # initialize class from json
     def from_dict(cls, data):
         user_preferences = cls()
@@ -87,6 +102,18 @@ class UserPreferences:
             "status": [s.value for s in self.status] if self.status else None,
             "floor": self.floor,
             "description": self.description,
+            "weight_area": self.weight_area,
+            "weight_rent": self.weight_rent,
+            "weight_disposition": self.weight_disposition,
+            "weight_garden": self.weight_garden,
+            "weight_balcony": self.weight_balcony,
+            "weight_cellar": self.weight_cellar,
+            "weight_loggie": self.weight_loggie,
+            "weight_elevator": self.weight_elevator,
+            "weight_terrace": self.weight_terrace,
+            "weight_garage": self.weight_garage,
+            "weight_parking": self.weight_parking,
+            "weight_poi_distance": self.weight_poi_distance,
         }
 
     def filter_listings(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -164,7 +191,7 @@ class UserPreferences:
 
         return df
 
-    def calculate_score(self, df: pd.DataFrame, scoring_weights: dict) -> pd.DataFrame:
+    def calculate_score(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.points_of_interest is not None and len(self.points_of_interest) > 0:
             # https://stackoverflow.com/questions/37885798/how-to-calculate-the-midpoint-of-several-geolocations-in-python
             x = 0.0
@@ -231,8 +258,22 @@ class UserPreferences:
             "poi_distance",
         ]
 
-        if int(sum(v for v in scoring_weights.values())) != len(scoring_weights):
-            raise ValueError("Sum of weights must be equal to it's length.")
+        scoring_weights = {
+            "normalized_area": self.weight_area,
+            "normalized_rent": self.weight_rent,
+            "normalized_disposition": self.weight_disposition,
+            "normalized_garden": self.weight_garden,
+            "normalized_balcony": self.weight_balcony,
+            "normalized_cellar": self.weight_cellar,
+            "normalized_loggie": self.weight_loggie,
+            "normalized_elevator": self.weight_elevator,
+            "normalized_terrace": self.weight_terrace,
+            "normalized_garage": self.weight_garage,
+            "normalized_parking": self.weight_parking,
+            "normalized_poi_distance": self.weight_poi_distance,
+        }
+        if sum(weights for weights in scoring_weights.values() if weights is not None) != len(scoring_weights):
+            raise ValueError("Sum of weights must be equal to it's length")
 
         # Normalize columns
         for col in scoring_columns:

@@ -14,7 +14,7 @@ from geopy import Point  # type: ignore
 import pandas as pd  # type: ignore
 from tabulate import tabulate  # type: ignore
 from discord_webhook import DiscordWebhook, DiscordEmbed
-from flask import Flask, render_template, flash, redirect, request, url_for, session
+from flask import Flask, render_template, flash, redirect, request, url_for
 from dotenv import load_dotenv
 
 from forms import UserPreferencesForm
@@ -50,32 +50,8 @@ app.config["SECRET_KEY"] = SECRET_KEY
 
 @app.route("/")
 def index():
-
-    scoring_weights = {
-        "normalized_area": 3,
-        "normalized_rent": 3,
-        "normalized_disposition": 0,
-        "normalized_garden": 0,
-        "normalized_balcony": 1.5,
-        "normalized_cellar": 0,
-        "normalized_loggie": 0,
-        "normalized_elevator": 0,
-        "normalized_terrace": 1.5,
-        "normalized_garage": 0,
-        "normalized_parking": 0,
-        "normalized_poi_distance": 3,
-    }
-
-    # if session['preferences'] is none, then redirect to preferences page
-    if session.get("preferences") is None:
-        return redirect(url_for("preferences"))
-
-    preferences = UserPreferences.from_dict(
-        UserPreferences, data=session["preferences"]
-    )
-    print(preferences.to_dict())
-
-    df = get_listings(preferences, scoring_weights)
+    preferences = load_preferences()
+    df = get_listings(preferences)
     return render_template(
         "index.html", utc_dt=datetime.datetime.utcnow(), listings_df=format_result(df)
     )
@@ -84,12 +60,12 @@ def index():
 @app.route("/preferences", methods=["GET", "POST"])
 def preferences():
     poi = get_point(POI)
+    preferences = load_preferences()
     form = UserPreferencesForm(
-        request.form, location="Praha", points_of_interest=f"{poi[0]},{poi[1]}"
+        request.form, obj=preferences
     )
     if form.validate_on_submit():
         flash("Preferences set successfully")
-        preferences = UserPreferences()
         for key, value in form.data.items():
             if value is None or value == "" or value is False:
                 continue
@@ -109,17 +85,26 @@ def preferences():
                 continue
             if key == "points_of_interest":
                 preferences.points_of_interest = [Point(value)]
+                continue
             setattr(preferences, key, value)
-        session["preferences"] = preferences.to_dict()
-        # fill the form with default values
+        save_preferences(preferences)
         return redirect(url_for("index"))
     return render_template("preferences.html", title="Set Preferences", form=form)
 
 
-def get_listings(preferences, scoring_weights):
-    crawl_time = datetime.datetime.now()
+def load_preferences() -> UserPreferences:
+    if not os.path.exists("preferences.json"):
+        return UserPreferences()
 
-    if CRAWL:
+    with open("preferences.json", "r", encoding="utf-8") as f:
+        preferences = json.load(f)
+
+    return UserPreferences.from_dict(UserPreferences, data=preferences)
+
+
+def save_preferences(preferences: UserPreferences) -> None:
+    with open("preferences.json", "w", encoding="utf-8") as f:
+        f.write(json.dumps(preferences.to_dict()))
         run_spiders(SCRAPER_OUTPUT_FILE)
     else:
         with open(SCRAPER_OUTPUT_FILE, "r", encoding="utf-8") as f:
@@ -129,8 +114,13 @@ def get_listings(preferences, scoring_weights):
     for i in items:
         listings.append(Listing(i))
 
-    # update_listing_database(DB_FILE, listings, crawl_time)
-    df = analyze_listings(DB_FILE, preferences, scoring_weights)
+
+def get_listings(preferences):
+
+    with open(SCRAPER_OUTPUT_FILE, "r", encoding="utf-8") as f:
+        items = json.load(f)
+
+    df = analyze_listings(DB_FILE, preferences)
     return df
 
 
@@ -250,8 +240,7 @@ def update_listing_database(
 
 
 def analyze_listings(
-    db_file: str, user_preferences: UserPreferences, user_weights: dict
-):
+    db_file: str, user_preferences: UserPreferences):
     df = clean_listing_database(db_file)
 
     df = df[
@@ -284,7 +273,7 @@ def analyze_listings(
         ]
     ]
     df = user_preferences.filter_listings(df)
-    df = user_preferences.calculate_score(df, user_weights)
+    df = user_preferences.calculate_score(df)
     # send_listings(df)
     return df
 
