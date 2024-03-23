@@ -51,8 +51,8 @@ app.config["SECRET_KEY"] = SECRET_KEY
 
 @app.route("/")
 def index():
-    preferences = load_preferences()
-    df = get_listings(preferences)
+    user_preferences = load_preferences()
+    df = analyze_listings(DB_FILE, user_preferences)
     return render_template(
         "index.html", utc_dt=datetime.datetime.utcnow(), listings_df=format_result(df)
     )
@@ -60,8 +60,8 @@ def index():
 
 @app.route("/preferences", methods=["GET", "POST"])
 def preferences():
-    preferences = load_preferences()
-    form = UserPreferencesForm(request.form, obj=preferences)
+    user_preferences = load_preferences()
+    form = UserPreferencesForm(request.form, obj=user_preferences)
     if form.validate_on_submit():
         flash("Preferences set successfully")
         for key, value in form.data.items():
@@ -70,22 +70,22 @@ def preferences():
             if key == "csrf_token" or key == "submit":
                 continue
             if key == "disposition":
-                preferences.disposition = [Disposition(x) for x in value]
+                user_preferences.disposition = [Disposition(x) for x in value]
                 continue
             if key == "type":
-                preferences.type = [PropertyType(x) for x in value]
+                user_preferences.type = [PropertyType(x) for x in value]
                 continue
             if key == "furnished":
-                preferences.furnished = [Furnished(x) for x in value]
+                user_preferences.furnished = [Furnished(x) for x in value]
                 continue
             if key == "status":
-                preferences.status = [PropertyStatus(x) for x in value]
+                user_preferences.status = [PropertyStatus(x) for x in value]
                 continue
             if key == "points_of_interest":
-                preferences.points_of_interest = [Point(value)]
+                user_preferences.points_of_interest = [Point(value)]
                 continue
-            setattr(preferences, key, value)
-        save_preferences(preferences)
+            setattr(user_preferences, key, value)
+        save_preferences(user_preferences)
         return redirect(url_for("index"))
     return render_template("preferences.html", title="Set Preferences", form=form)
 
@@ -95,50 +95,39 @@ def load_preferences() -> UserPreferences:
         return UserPreferences()
 
     with open("preferences.json", "r", encoding="utf-8") as f:
-        preferences = json.load(f)
+        user_preferences = json.load(f)
 
-    return UserPreferences.from_dict(UserPreferences, data=preferences)
+    return UserPreferences.from_dict(UserPreferences, data=user_preferences)
 
 
-def save_preferences(preferences: UserPreferences) -> None:
+def save_preferences(user_preferences: UserPreferences) -> None:
     with open("preferences.json", "w", encoding="utf-8") as f:
-        f.write(json.dumps(preferences.to_dict()))
+        f.write(json.dumps(user_preferences.to_dict()))
 
 
-def crawl_regularly():
-    while True:
-        print(f"{datetime.datetime.utcnow().isoformat()}: starting crawling")
+def crawl_regularly(crawl=True):
+    global items
+    if crawl:
         run_spiders(SCRAPER_OUTPUT_FILE)
+    else:
+        with open(SCRAPER_OUTPUT_FILE, "r", encoding='utf-8') as f:
+            items = json.load(f)
 
-        listings = []
-        for i in items:
-            listings.append(Listing(i))
+    listings = []
+    for item in items:
+        listings.append(Listing(item))
 
-        with open(LAST_CRAWL_FILE, "r", encoding="utf-8") as f:
-            crawl_time = datetime.datetime.fromisoformat(f.read())
+    with open(LAST_CRAWL_FILE, "r", encoding="utf-8") as f:
+        last_crawl_time = datetime.datetime.fromisoformat(f.read())
 
-        update_listing_database(DB_FILE, listings, crawl_time)
+    update_listing_database(DB_FILE, listings, last_crawl_time)
 
-        sleep_duration = 900  # 15 minutes
-        print(
-            f"{datetime.datetime.utcnow().isoformat()}: crawling finished, sleeping for {900}"
-        )
-        time.sleep(sleep_duration)
-        # #TODO: get preferences from somewhere
-        # get_listings()
+    user_preferences = load_preferences()
 
-
-def get_listings(preferences):
-
-    with open(SCRAPER_OUTPUT_FILE, "r", encoding="utf-8") as f:
-        items = json.load(f)
-
-    df = analyze_listings(DB_FILE, preferences)
-    return df
+    analyze_listings(DB_FILE, user_preferences)
 
 
-def format_result(df: pd.DataFrame, min_score: int):
-    df = df[df["sum"] >= min_score/100]
+def format_result(df: pd.DataFrame):
     df = df.sort_values(by="sum", ascending=False, inplace=False)
     df["rent"] = df["rent"].apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
     df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2" if x > 0 else "")
@@ -155,8 +144,16 @@ def format_result(df: pd.DataFrame, min_score: int):
     return df
 
 
-def notify_user(df: pd.DataFrame, min_score: int):
-    df = format_result(df, min_score)
+def notify_user(df: pd.DataFrame):
+    with open(LAST_CRAWL_FILE, "r", encoding="utf-8") as f:
+        last_crawl_time = datetime.datetime.fromisoformat(f.read())
+
+    df = df[df["updated"] == str(last_crawl_time)]
+
+    if df.empty:
+        print("No new listings found")
+        return
+    df = format_result(df)
     if WEBHOOK_URL is None:
         print("Webhook URL not found in .env file")
         return
@@ -173,10 +170,12 @@ def notify_user(df: pd.DataFrame, min_score: int):
     embed.set_footer(text="Embed Footer Text")
     embed.set_timestamp()
     # Set `inline=False` for the embed field to occupy the whole line
-    for l in df.to_dict(orient="records"):
+    # discord message length should be limited
+    df = df.head(10)
+    for record in df.to_dict(orient="records"):
         embed.add_embed_field(
-            name=f"{l['sum']} - {l['address']}",
-            value=f"{l['rent']}\n{l['disposition']} - {l['area']}\n{l['url']}",
+            name=f"{record['sum']} - {record['address']}",
+            value=f"{record['rent']}\n{record['disposition']} - {record['area']}\n{record['url']}",
             inline=False,
         )
 
@@ -290,7 +289,7 @@ def analyze_listings(db_file: str, user_preferences: UserPreferences):
     df = user_preferences.filter_listings(df)
     df = user_preferences.calculate_score(df)
 
-    notify_user(df, user_preferences.min_score)
+    notify_user(df)
     return df
 
 
