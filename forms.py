@@ -42,3 +42,4 @@ class UserPreferencesForm(FlaskForm):
     weight_garage = IntegerField('Garage Weight', validators=[Optional()])
     weight_parking = IntegerField('Parking Weight', validators=[Optional()])
     weight_poi_distance = IntegerField('POI Distance Weight', validators=[Optional()])
+    min_score = IntegerField('Minimum Score', validators=[Optional()])

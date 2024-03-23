@@ -54,7 +54,7 @@ class UserPreferences:
         self.weight_parking: None | float = None
         self.weight_poi_distance: None | float = None
 
-
+        self.min_score: None | int = 1
 
     # initialize class from json
     def from_dict(cls, data):
@@ -114,6 +114,7 @@ class UserPreferences:
             "weight_garage": self.weight_garage,
             "weight_parking": self.weight_parking,
             "weight_poi_distance": self.weight_poi_distance,
+            "min_score": self.min_score,
         }
 
     def filter_listings(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -293,4 +294,8 @@ class UserPreferences:
         # Calculate score
         df["sum"] = (df[scoring_columns] * pd.Series(scoring_weights)).sum(axis=1)/len(scoring_columns)
         df.disposition = df.disposition.map({v: k for k, v in disposition_mapping.items()})
+
+        if self.min_score:
+            df = df[df["sum"] >= self.min_score/100]
+
         return df

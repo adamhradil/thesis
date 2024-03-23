@@ -137,17 +137,17 @@ def get_listings(preferences):
     return df
 
 
-def format_result(df: pd.DataFrame):
+def format_result(df: pd.DataFrame, min_score: int):
+    df = df[df["sum"] >= min_score/100]
     df = df.sort_values(by="sum", ascending=False, inplace=False)
     df["rent"] = df["rent"].apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
     df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2" if x > 0 else "")
     df["sum"] = df["sum"].apply(
         lambda x: str(int(round(x, 2) * 100)) + "/100" if x > 0 else ""
     )
-    listings_to_send = df.head(5)
     print(
         tabulate(
-            listings_to_send[["sum", "address", "rent", "disposition", "area", "url"]],
+            df[["sum", "address", "rent", "disposition", "area", "url"]],
             tablefmt="grid",
             headers=["id", "sum", "address", "rent", "disposition", "area", "url"],
         )
@@ -155,8 +155,8 @@ def format_result(df: pd.DataFrame):
     return df
 
 
-def notify_user(df: pd.DataFrame):
-    df = format_result(df)
+def notify_user(df: pd.DataFrame, min_score: int):
+    df = format_result(df, min_score)
     if WEBHOOK_URL is None:
         print("Webhook URL not found in .env file")
         return
@@ -289,7 +289,8 @@ def analyze_listings(db_file: str, user_preferences: UserPreferences):
     ]
     df = user_preferences.filter_listings(df)
     df = user_preferences.calculate_score(df)
-    # send_listings(df)
+
+    notify_user(df, user_preferences.min_score)
     return df
 
 
