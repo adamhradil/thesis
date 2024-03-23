@@ -60,11 +60,8 @@ def index():
 
 @app.route("/preferences", methods=["GET", "POST"])
 def preferences():
-    poi = get_point(POI)
     preferences = load_preferences()
-    form = UserPreferencesForm(
-        request.form, obj=preferences
-    )
+    form = UserPreferencesForm(request.form, obj=preferences)
     if form.validate_on_submit():
         flash("Preferences set successfully")
         for key, value in form.data.items():
@@ -123,7 +120,9 @@ def crawl_regularly():
         update_listing_database(DB_FILE, listings, crawl_time)
 
         sleep_duration = 900  # 15 minutes
-        print(f"{datetime.datetime.utcnow().isoformat()}: crawling finished, sleeping for {900}")
+        print(
+            f"{datetime.datetime.utcnow().isoformat()}: crawling finished, sleeping for {900}"
+        )
         time.sleep(sleep_duration)
         # #TODO: get preferences from somewhere
         # get_listings()
@@ -256,8 +255,7 @@ def update_listing_database(
     print(f"updating db took {end - start}s")
 
 
-def analyze_listings(
-    db_file: str, user_preferences: UserPreferences):
+def analyze_listings(db_file: str, user_preferences: UserPreferences):
     df = clean_listing_database(db_file)
 
     df = df[
@@ -323,7 +321,9 @@ def run_spiders(json_output: str):
         for item in items:
             exporter.export_item(item)
         exporter.finish_exporting()
-    print(f"{datetime.datetime.utcnow().isoformat()}: scraped items saved to {output_file}")
+    print(
+        f"{datetime.datetime.utcnow().isoformat()}: scraped items saved to {output_file}"
+    )
 
     end = time.time()
 
