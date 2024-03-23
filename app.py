@@ -14,7 +14,7 @@ from geopy import Point  # type: ignore
 import pandas as pd  # type: ignore
 from tabulate import tabulate  # type: ignore
 from discord_webhook import DiscordWebhook, DiscordEmbed
-from flask import Flask, render_template, flash, redirect, url_for, session
+from flask import Flask, render_template, flash, redirect, request, url_for, session
 from dotenv import load_dotenv
 
 from forms import UserPreferencesForm
@@ -32,6 +32,10 @@ from disposition import Disposition
 from listings_clearner import clean_listing_database
 
 
+CRAWL = False
+SCRAPER_OUTPUT_FILE = "all_items.json"
+POI = "NTK Praha"
+DB_FILE = "listings.db"
 items = []
 load_dotenv()
 webhook_url = os.getenv("WEBHOOK_URL")
@@ -40,31 +44,12 @@ if webhook_url == "" or webhook_url is None:
     sys.exit(1)
 
 app = Flask(__name__)
+SECRET_KEY = os.urandom(32)
 app.config["SECRET_KEY"] = SECRET_KEY
 
 
 @app.route("/")
 def index():
-
-    preferences = UserPreferences()
-    # preferences.location = "Praha"
-    # preferences.points_of_interest = [poi_point, poi_point_2]
-    # preferences.disposition = [
-    #     Disposition.TWO_PLUS_KK,
-    #     Disposition.TWO_PLUS_ONE,
-    #     Disposition.THREE_PLUS_KK,
-    #     Disposition.THREE_PLUS_ONE,
-    #     Disposition.FOUR_PLUS_KK,
-    #     Disposition.FOUR_PLUS_ONE,
-    # ]
-    # preferences.min_area = 50
-    preferences.max_area = 80
-    # preferences.min_price = 25000
-    preferences.max_price = 30000
-    # preferences.balcony = True
-    # preferences.terrace = True
-
-    # preferences.floor = 3
 
     scoring_weights = {
         "normalized_area": 3,
@@ -85,25 +70,28 @@ def index():
     if session.get("preferences") is None:
         return redirect(url_for("preferences"))
 
-
-    preferences = UserPreferences.from_dict(UserPreferences, data=session['preferences'])
+    preferences = UserPreferences.from_dict(
+        UserPreferences, data=session["preferences"]
+    )
     print(preferences.to_dict())
 
-    df = get_res(DB_FILE, preferences, scoring_weights)
-
+    df = get_listings(preferences, scoring_weights)
     return render_template(
-        "index.html", utc_dt=datetime.datetime.utcnow(), listings_df=prepare_output(df)
+        "index.html", utc_dt=datetime.datetime.utcnow(), listings_df=format_result(df)
     )
 
 
 @app.route("/preferences", methods=["GET", "POST"])
 def preferences():
-    form = UserPreferencesForm()
+    poi = get_point(POI)
+    form = UserPreferencesForm(
+        request.form, location="Praha", points_of_interest=f"{poi[0]},{poi[1]}"
+    )
     if form.validate_on_submit():
         flash("Preferences set successfully")
         preferences = UserPreferences()
         for key, value in form.data.items():
-            if value is None:
+            if value is None or value == "" or value is False:
                 continue
             if key == "csrf_token" or key == "submit":
                 continue
@@ -119,18 +107,40 @@ def preferences():
             if key == "status":
                 preferences.status = [PropertyStatus(x) for x in value]
                 continue
+            if key == "points_of_interest":
+                preferences.points_of_interest = [Point(value)]
             setattr(preferences, key, value)
-        session['preferences'] = preferences.to_dict()
+        session["preferences"] = preferences.to_dict()
         # fill the form with default values
         return redirect(url_for("index"))
     return render_template("preferences.html", title="Set Preferences", form=form)
 
 
-def prepare_output(df: pd.DataFrame):
+def get_listings(preferences, scoring_weights):
+    crawl_time = datetime.datetime.now()
+
+    if CRAWL:
+        run_spiders(SCRAPER_OUTPUT_FILE)
+    else:
+        with open(SCRAPER_OUTPUT_FILE, "r", encoding="utf-8") as f:
+            items = json.load(f)
+
+    listings = []
+    for i in items:
+        listings.append(Listing(i))
+
+    # update_listing_database(DB_FILE, listings, crawl_time)
+    df = analyze_listings(DB_FILE, preferences, scoring_weights)
+    return df
+
+
+def format_result(df: pd.DataFrame):
     df = df.sort_values(by="sum", ascending=False, inplace=False)
-    df["rent"] = df["rent"].apply(lambda x: str(int(x)) + " Kč")
-    df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2")
-    df["sum"] = df["sum"].apply(lambda x: str(int(round(x, 2) * 100)) + "/100")
+    df["rent"] = df["rent"].apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
+    df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2" if x > 0 else "")
+    df["sum"] = df["sum"].apply(
+        lambda x: str(int(round(x, 2) * 100)) + "/100" if x > 0 else ""
+    )
     listings_to_send = df.head(5)
     print(
         tabulate(
@@ -139,12 +149,11 @@ def prepare_output(df: pd.DataFrame):
             headers=["id", "sum", "address", "rent", "disposition", "area", "url"],
         )
     )
-    return df.head(5)
+    return df
 
 
-def send_listings(df: pd.DataFrame):
-
-    df = prepare_output(df)
+def notify_user(df: pd.DataFrame):
+    df = format_result(df)
     webhook = DiscordWebhook(url=webhook_url, username="Real Estate")
 
     embed = DiscordEmbed(
@@ -185,7 +194,9 @@ def item_scraped(item):
     items.append(item)
 
 
-def update_db(db_file: str, last_crawl_time: datetime.datetime):
+def update_listing_database(
+    db_file: str, listings: list[Listing], last_crawl_time: datetime.datetime
+):
     print("updating the listing database")
     start = time.time()
     db = DatabaseWrapper(db_file)
@@ -238,8 +249,9 @@ def update_db(db_file: str, last_crawl_time: datetime.datetime):
     print(f"updating db took {end - start}s")
 
 
-def get_res(db_file: str, user_preferences: UserPreferences, user_weights: dict):
-
+def analyze_listings(
+    db_file: str, user_preferences: UserPreferences, user_weights: dict
+):
     df = clean_listing_database(db_file)
 
     df = df[
@@ -277,7 +289,7 @@ def get_res(db_file: str, user_preferences: UserPreferences, user_weights: dict)
     return df
 
 
-def crawl_lisings(json_output: str):
+def run_spiders(json_output: str):
     process = CrawlerProcess(
         settings={
             "LOG_LEVEL": "INFO",
@@ -313,31 +325,4 @@ def crawl_lisings(json_output: str):
 
 
 if __name__ == "__main__":
-
-    CRAWL = False
-    SCRAPER_OUTPUT_FILE = "all_items.json"
-    POI = "NTK Praha"
-    DB_FILE = "listings.db"
-
-    crawl_time = datetime.datetime.now()
-
-    if CRAWL:
-        crawl_lisings(SCRAPER_OUTPUT_FILE)
-    else:
-        with open(SCRAPER_OUTPUT_FILE, "r", encoding="utf-8") as f:
-            items = json.load(f)
-
-    listings = []
-    for i in items:
-        listings.append(Listing(i))
-
-    # update_db(DB_FILE, crawl_time)
-
-    poi_point = get_point(POI)
-    poi_point_2 = get_point("GRAM Praha")
-    if poi_point is None or poi_point_2 is None:
-        print("Could not find the point of interest")
-        sys.exit(1)
-
-
     app.run(debug=True)
