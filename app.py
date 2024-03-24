@@ -6,7 +6,6 @@ import time
 import sys
 import os
 
-from scrapy import signals  # type: ignore
 from scrapy.crawler import CrawlerProcess  # type: ignore
 from scrapy.exporters import JsonItemExporter  # type: ignore
 from geopy.geocoders import Nominatim  # type: ignore
@@ -60,12 +59,20 @@ def index():
 
 @app.route("/preferences", methods=["GET", "POST"])
 def preferences():
-    user_preferences = load_preferences()
-    form = UserPreferencesForm(request.form, obj=user_preferences)
-    if form.validate_on_submit():
-        flash("Preferences set successfully")
+    if request.method == "GET":        
+        form = UserPreferencesForm(request.form)
+        user_preferences = load_preferences()
+        # loop through all fields of preferences
+        for key, value in user_preferences.to_dict().items():
+            if key == 'available_from':
+                continue
+            getattr(form, key).data = value
+    # if submit is pushed
+    if request.method == "POST":
+        form = UserPreferencesForm(request.form)
+        user_preferences = load_preferences()
         for key, value in form.data.items():
-            if value is None or value == "" or value is False:
+            if value is None or value == "":
                 continue
             if key == "csrf_token" or key == "submit":
                 continue
@@ -84,15 +91,8 @@ def preferences():
             if key == "points_of_interest":
                 user_preferences.points_of_interest = [Point(value)]
                 continue
-            if key == "estate_type":
-                user_preferences.estate_type = value.lower()
-                continue
-            if key == "listing_type":
-                user_preferences.listing_type = value.lower()
-                continue
             setattr(user_preferences, key, value)
         save_preferences(user_preferences)
-        return redirect(url_for("preferences"))
     return render_template("preferences.html", title="Set Preferences", form=form)
 
 

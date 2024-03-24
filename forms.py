@@ -9,8 +9,8 @@ from property_status import PropertyStatus
 
 class UserPreferencesForm(FlaskForm):
     location = SelectField('Location', validators=[DataRequired()], choices=["Praha", "Brno", "Ostrava"])
-    estate_type = SelectField('Estate Type', validators=[DataRequired()], choices=["Apartment", "House"])
-    listing_type = SelectField('Listing Type', validators=[DataRequired()], choices=["Sale", "Rent"])
+    estate_type = SelectField('Estate Type', validators=[DataRequired()], choices=["apartment", "house"])
+    listing_type = SelectField('Listing Type', validators=[DataRequired()], choices=["sale", "rent"])
     points_of_interest = StringField('Points of Interest', validators=[Optional()])
     disposition = SelectMultipleField('Disposition', choices=[(d.value) for d in Disposition], validators=[Optional()])
     min_area = IntegerField('Minimum Area', validators=[Optional()])
