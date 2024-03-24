@@ -84,9 +84,15 @@ def preferences():
             if key == "points_of_interest":
                 user_preferences.points_of_interest = [Point(value)]
                 continue
+            if key == "estate_type":
+                user_preferences.estate_type = value.lower()
+                continue
+            if key == "listing_type":
+                user_preferences.listing_type = value.lower()
+                continue
             setattr(user_preferences, key, value)
         save_preferences(user_preferences)
-        return redirect(url_for("index"))
+        return redirect(url_for("preferences"))
     return render_template("preferences.html", title="Set Preferences", form=form)
 
 
@@ -320,10 +326,11 @@ def run_spiders(json_output: str):
     )
 
     start = time.time()
+    preferences = load_preferences()
     spider_settings = {}
-    spider_settings['listing_type'] = "rent"
-    spider_settings['estate_type'] = "apartment"
-    spider_settings['location'] = "Praha"
+    spider_settings['listing_type'] = preferences.listing_type
+    spider_settings['estate_type'] = preferences.estate_type
+    spider_settings['location'] = preferences.location
 
     crawler = process.create_crawler(SearchFlatsSpider)
     crawler2 = process.create_crawler(SrealitySpider)

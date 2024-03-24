@@ -11,6 +11,8 @@ from furnished import Furnished
 
 class UserPreferences:
     def __init__(self) -> None:
+        self.estate_type: None | str = None
+        self.listing_type: None | str = None
         self.location: None | str = None  # later region, city, district, street
         self.points_of_interest: None | list[Point] = None
 
@@ -73,7 +75,8 @@ class UserPreferences:
             elif key == "available_from":
                 user_preferences.available_from = date.fromisoformat(value)
             elif key == "points_of_interest":
-                user_preferences.points_of_interest = [Point(float(value.split(",")[0]), float(value.split(",")[1]))]
+                print(value)
+                user_preferences.points_of_interest = [Point(value[0][0], value[0][1])]
             else:
                 setattr(user_preferences, key, value)
         return user_preferences
@@ -82,7 +85,9 @@ class UserPreferences:
     def to_dict(self):
         return {
             "location": self.location,
-            "points_of_interest": self.points_of_interest,
+            "estate_type": self.estate_type,
+            "listing_type": self.listing_type,
+            "points_of_interest": [(point.latitude, point.longitude) for point in self.points_of_interest] if self.points_of_interest else None,
             "disposition": [d.value for d in self.disposition] if self.disposition else None,
             "min_area": self.min_area,
             "max_area": self.max_area,
