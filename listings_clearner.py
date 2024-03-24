@@ -67,7 +67,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # ## Area
 
     # %%
-    df.area = df.area.apply(lambda x: int(x) if isinstance(x, str) and x.isnumeric() else x)
+    df.area = df.area.apply(lambda x: int(unidecode.unidecode(x).replace(" ", "")) if isinstance(x, str) else x)
 
     # %% [markdown]
     # ## Available from
@@ -161,7 +161,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # %%
     df.loc[:, "floor"] = df.floor.replace(". podlaží.*", "", regex=True).replace(
         " z celkem.*", "", regex=True
-    )
+    ).replace(" včetně.*", "", regex=True).replace(" underground.*", "", regex=True)
     df.floor.unique()
 
     # %%
