@@ -293,6 +293,16 @@ def analyze_listings(db_file: str, user_preferences: UserPreferences):
     return df
 
 
+# pipeline to fill the items list
+class ItemCollectorPipeline(object):
+    def __init__(self):
+        self.ids_seen = set()
+
+    def process_item(self, item, spider):
+        print(item["url"])
+        items.append(item)
+
+
 def run_spiders(json_output: str):
     process = CrawlerProcess(
         settings={
@@ -302,17 +312,21 @@ def run_spiders(json_output: str):
                     AppleWebKit/537.36 (KHTML, like Gecko)
                     Chrome/60.0.3112.113 Safari/537.36""",
             },
+            "ITEM_PIPELINES": { "__main__.ItemCollectorPipeline": 100 }
         }
     )
 
     start = time.time()
+    spider_settings = {}
+    spider_settings['listing_type'] = "rent"
+    spider_settings['estate_type'] = "apartment"
+    spider_settings['location'] = "Praha"
 
     crawler = process.create_crawler(SearchFlatsSpider)
-    crawler.signals.connect(item_scraped, signal=signals.item_scraped)
     crawler2 = process.create_crawler(SrealitySpider)
-    crawler2.signals.connect(item_scraped, signal=signals.item_scraped)
-    process.crawl(crawler)
-    process.crawl(crawler2)
+    
+    process.crawl(crawler, spider_settings)
+    process.crawl(crawler2, spider_settings)
     process.start()
 
     with open(file=json_output, mode="wb") as output_file:
