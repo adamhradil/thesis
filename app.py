@@ -287,6 +287,9 @@ def analyze_listings(db_file: str, user_preferences: UserPreferences):
         ]
     ]
     df = user_preferences.filter_listings(df)
+    if df.empty:
+        print("No listings found after filtering")
+        return df
     df = user_preferences.calculate_score(df)
 
     notify_user(df)
