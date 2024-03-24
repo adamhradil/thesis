@@ -64,8 +64,13 @@ def preferences():
         user_preferences = load_preferences()
         # loop through all fields of preferences
         for key, value in user_preferences.to_dict().items():
+            if value == None:
+                continue
             if key == 'available_from':
                 continue
+            if key == 'points_of_interest':
+                getattr(form, key).data = f"{';'.join([str(x[0])+','+str(x[1]) for x in value])}"
+                continue    
             getattr(form, key).data = value
     # if submit is pushed
     if request.method == "POST":
@@ -89,7 +94,7 @@ def preferences():
                 user_preferences.status = [PropertyStatus(x) for x in value]
                 continue
             if key == "points_of_interest":
-                user_preferences.points_of_interest = [Point(value)]
+                user_preferences.points_of_interest = [Point(value) for value in value.split(";")]
                 continue
             setattr(user_preferences, key, value)
         save_preferences(user_preferences)
