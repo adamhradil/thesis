@@ -15,6 +15,7 @@ from tabulate import tabulate  # type: ignore
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from flask import Flask, render_template, flash, redirect, request, url_for
 from dotenv import load_dotenv
+# import threading
 
 from forms import UserPreferencesForm
 
@@ -117,6 +118,8 @@ def save_preferences(user_preferences: UserPreferences) -> None:
 
 
 def crawl_regularly(crawl=True):
+    # while True:
+    print("starting crawling")
     global items
     if crawl:
         run_spiders(SCRAPER_OUTPUT_FILE)
@@ -136,6 +139,8 @@ def crawl_regularly(crawl=True):
     user_preferences = load_preferences()
 
     analyze_listings(DB_FILE, user_preferences)
+        # print("sleeping for 15 minutes")
+        # time.sleep(900)
 
 
 def format_result(df: pd.DataFrame):
@@ -369,4 +374,6 @@ if __name__ == "__main__":
     if len(args) > 0 and args[0] == "--crawl":
         crawl_regularly()
     else:
+        # thread = threading.Thread(target=crawl_regularly, args=(True,))
+        # thread.start()
         app.run(debug=True)
