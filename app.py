@@ -53,6 +53,7 @@ app.config["SECRET_KEY"] = SECRET_KEY
 def index():
     user_preferences = load_preferences()
     if not os.path.exists('preferences.json'):
+        flash("fill out the preferences before viewing the listings")
         return redirect(url_for('preferences'))
     if not os.path.exists(DB_FILE):
         flash("No listings found, please run the scraper with --crawl option")
