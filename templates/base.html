@@ -80,6 +80,9 @@
         <a href="{{ url_for('preferences') }}">Preferences</a>
     </nav>
     <main>
+        {% for mesg in get_flashed_messages() %}
+        <h1>{{ mesg }}</h1>
+        {% endfor %}
         {% block content %}
         {% endblock %}
     </main>

@@ -52,7 +52,13 @@ app.config["SECRET_KEY"] = SECRET_KEY
 @app.route("/")
 def index():
     user_preferences = load_preferences()
-    df = analyze_listings(DB_FILE, user_preferences)
+    if not os.path.exists('preferences.json'):
+        return redirect(url_for('preferences'))
+    if not os.path.exists(DB_FILE):
+        flash("No listings found, please run the scraper with --crawl option")
+        return redirect(url_for('preferences'))
+    else:
+        df = analyze_listings(DB_FILE, user_preferences)
     return render_template(
         "index.html", utc_dt=datetime.datetime.utcnow(), listings_df=format_result(df)
     )
