@@ -75,7 +75,6 @@ class UserPreferences:
             elif key == "available_from":
                 user_preferences.available_from = date.fromisoformat(value)
             elif key == "points_of_interest":
-                print(value)
                 user_preferences.points_of_interest = [Point(latitude=point[0], longitude=point[1]) for point in value]
             else:
                 setattr(user_preferences, key, value)
