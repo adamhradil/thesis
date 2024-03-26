@@ -58,6 +58,13 @@ class UserPreferences:
 
         self.min_score: None | int = 1
 
+    def validate_weights(self):
+        # each attribute containing weight_ in the name must be larger than 0
+        
+        for weight in scoring_weights.values():
+            if weight is not None and weight <= 0:
+                raise ValueError("Each weight must be larger than 0")
+
     # initialize class from json
     def from_dict(cls, data):
         user_preferences = cls()
@@ -226,9 +233,10 @@ class UserPreferences:
             # print(f"{central_latitude}, {central_longitude}")
 
             for i, row in df.iterrows():
-                df.loc[i, "poi_distance"] = distance(  # type: ignore
+                df.loc[i, "poi_distance"] = int(distance(  # type: ignore
                     (central_latitude, central_longitude), (row.gps_lat, row.gps_lon)
-                ).m
+                ).m)
+            df.poi_distance = df.poi_distance.astype(int)
         else:
             df["poi_distance"] = 0
 
@@ -277,8 +285,9 @@ class UserPreferences:
             "normalized_parking": self.weight_parking,
             "normalized_poi_distance": self.weight_poi_distance,
         }
-        if sum(weights for weights in scoring_weights.values() if weights is not None) != len(scoring_weights):
-            raise ValueError("Sum of weights must be equal to it's length")
+        # if sum(weights for weights in scoring_weights.values() if weights is not None) != len(scoring_weights):
+        #     raise ValueError("Sum of weights must be equal to it's length")
+
 
         # Normalize columns
         for col in scoring_columns:
@@ -296,7 +305,9 @@ class UserPreferences:
 
         scoring_columns = ["normalized_" + col for col in scoring_columns]
         # Calculate score
-        df["sum"] = (df[scoring_columns] * pd.Series(scoring_weights)).sum(axis=1)/len(scoring_columns)
+        df["sum"] = (df[scoring_columns] * pd.Series(scoring_weights)).sum(axis=1)
+        # normalize sum
+        # df["sum"] = (df["sum"] - df["sum"].min()) / (df["sum"].max() - df["sum"].min())
         df.disposition = df.disposition.map({v: k for k, v in disposition_mapping.items()})
 
         if self.min_score:

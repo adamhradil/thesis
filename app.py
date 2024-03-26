@@ -49,7 +49,7 @@ SECRET_KEY = os.urandom(32)
 app.config["SECRET_KEY"] = SECRET_KEY
 
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
     user_preferences = load_preferences()
     if not os.path.exists('preferences.json'):
@@ -59,9 +59,36 @@ def index():
         flash("No listings found, please run the scraper with --crawl option")
         return redirect(url_for('preferences'))
     else:
+        if request.method == 'POST':
+            print(request.form)
+            if 'rentbutton' in request.form.keys():
+                if request.form['rentbutton'] == '+':
+                    if user_preferences.weight_rent <= 10:
+                        user_preferences.weight_rent = user_preferences.weight_rent + 1
+                elif request.form['rentbutton'] == '-':
+                    if user_preferences.weight_rent > 0:
+                        user_preferences.weight_rent = user_preferences.weight_rent - 1
+            if 'poidistancebutton' in request.form.keys():
+                if request.form['poidistancebutton'] == '+':
+                    if user_preferences.weight_poi_distance <= 10:
+                        user_preferences.weight_poi_distance = user_preferences.weight_poi_distance + 1
+                elif request.form['poidistancebutton'] == '-':
+                    if user_preferences.weight_poi_distance > 0:
+                        user_preferences.weight_poi_distance = user_preferences.weight_poi_distance - 1
+            if 'areabutton' in request.form.keys():
+                if request.form['areabutton'] == '+':
+                    if user_preferences.weight_area <= 10:
+                            user_preferences.weight_area = user_preferences.weight_area + 1
+                elif request.form['areabutton'] == '-':
+                    if user_preferences.weight_area > 0:
+                        user_preferences.weight_area = user_preferences.weight_area - 1
+            else:
+                pass  # unknown
+            save_preferences(user_preferences)
+
         df = analyze_listings(DB_FILE, user_preferences)
     return render_template(
-        "index.html", utc_dt=datetime.datetime.utcnow(), listings_df=format_result(df)
+        "index.html", utc_dt=datetime.datetime.utcnow(), preferences=user_preferences, listings_df=format_result(df)
     )
 
 
@@ -155,7 +182,7 @@ def format_result(df: pd.DataFrame):
     df["rent"] = df["rent"].apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
     df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2" if x > 0 else "")
     df["sum"] = df["sum"].apply(
-        lambda x: str(int(round(x, 2) * 100)) + "/100" if x > 0 else ""
+        lambda x: round(x, 2) if x > 0 else 0
     )
     # print(
     #     tabulate(

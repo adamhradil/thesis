@@ -2,23 +2,44 @@
 
 {% block content %}
     <h1>Real Estate Listings</h1>
-    <table border="1">
-        <tr>
-            <th>sum</th>
-            <th>address</th>
-            <th>rent</th>
-            <th>disposition</th>
-            <th>area</th>
-            <th>url</th>
-        </tr>
-        {% for row in listings_df.iterrows() %}
-        <tr>
-            <td>{{ row[1]['sum'] }}</td>
-            <td>{{ row[1]['address'] }}</td>
-            <td>{{ row[1]['rent'] }}</td>
-            <td>{{ row[1]['disposition'] }}</td>
-            <td>{{ row[1]['area'] }}</td>
-            <td><a href="{{ row[1]['url'] }}">{{ row[1]['url'] }}</a></td>
-        </tr>
-        {% endfor %}
+    <form method="post">
+        <table border="1">
+            <tr>
+                <th>sum</th>
+                <th>address</th>
+                <th>
+                    rent</br>
+                    <button name="rentbutton" value="-">-</button>
+                    {{ preferences.weight_rent }}
+                    <button name="rentbutton" value="+">+</button>
+                </th>
+                <th>disposition</th>
+                <th>
+                    area</br>
+                    <button name="areabutton" value="-">-</button>
+                    {{ preferences.weight_area }}
+                    <button name="areabutton" value="+">+</button>
+                </th>
+                <th>
+                    POI Distance</br>
+                    <button name="poidistancebutton" value="-">-</button>
+                    {{ preferences.weight_poi_distance }}
+                    <button name="poidistancebutton" value="+">+</button>
+                </th>
+                <th>url</th>
+            </tr>
+            
+            {% for row in listings_df.iterrows() %}
+            <tr>
+                <td>{{ row[1]['sum'] }}</td>
+                <td>{{ row[1]['address'] }}</td>
+                <td>{{ row[1]['rent'] }}</td>
+                <td>{{ row[1]['disposition'] }}</td>
+                <td>{{ row[1]['area'] }}</td>
+                <td>{{ row[1]['poi_distance'] }}</td>
+                <td><a href="{{ row[1]['url'] }}">{{ row[1]['url'] }}</a></td>
+            </tr>
+            {% endfor %}
+        </form>
+    </table>
 {% endblock %}
