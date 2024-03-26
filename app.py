@@ -27,7 +27,7 @@ from furnished import Furnished
 from property_status import PropertyStatus
 from property_type import PropertyType
 from listing import Listing
-from user_preferences import UserPreferences
+from user_preferences import UserPreferences, SCORING_COLUMNS
 from disposition import Disposition
 from listings_clearner import clean_listing_database
 
@@ -61,29 +61,19 @@ def index():
     else:
         if request.method == 'POST':
             print(request.form)
-            if 'rentbutton' in request.form.keys():
-                if request.form['rentbutton'] == '+':
-                    if user_preferences.weight_rent < 10:
-                        user_preferences.weight_rent = user_preferences.weight_rent + 1
-                elif request.form['rentbutton'] == '-':
-                    if user_preferences.weight_rent > 0:
-                        user_preferences.weight_rent = user_preferences.weight_rent - 1
-            if 'poidistancebutton' in request.form.keys():
-                if request.form['poidistancebutton'] == '+':
-                    if user_preferences.weight_poi_distance < 10:
-                        user_preferences.weight_poi_distance = user_preferences.weight_poi_distance + 1
-                elif request.form['poidistancebutton'] == '-':
-                    if user_preferences.weight_poi_distance > 0:
-                        user_preferences.weight_poi_distance = user_preferences.weight_poi_distance - 1
-            if 'areabutton' in request.form.keys():
-                if request.form['areabutton'] == '+':
-                    if user_preferences.weight_area < 10:
-                            user_preferences.weight_area = user_preferences.weight_area + 1
-                elif request.form['areabutton'] == '-':
-                    if user_preferences.weight_area > 0:
-                        user_preferences.weight_area = user_preferences.weight_area - 1
-            else:
-                pass  # unknown
+
+            for column in SCORING_COLUMNS:
+                button = column + '_button'
+                weight = 'weight_' + column
+                if button in request.form.keys():
+                    weight_value = getattr(user_preferences, weight)
+                    if request.form[button] == '+':
+                        if weight_value < 10:
+                            setattr(user_preferences, weight, weight_value + 1)
+                    elif request.form[button] == '-':
+                        if weight_value > 0:
+                            setattr(user_preferences, weight, weight_value - 1)
+
             save_preferences(user_preferences)
 
         df = analyze_listings(DB_FILE, user_preferences)

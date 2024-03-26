@@ -9,6 +9,21 @@ from property_type import PropertyType
 from furnished import Furnished
 
 
+SCORING_COLUMNS = [
+    "area",
+    "rent",
+    "disposition",
+    "garden",
+    "balcony",
+    "cellar",
+    "loggie",
+    "elevator",
+    "terrace",
+    "garage",
+    "parking",
+    "poi_distance",
+]
+
 class UserPreferences:
     def __init__(self) -> None:
         self.estate_type: None | str = None
@@ -256,20 +271,7 @@ class UserPreferences:
         }
         df.disposition = df.disposition.map(disposition_mapping)
 
-        scoring_columns = [
-            "area",
-            "rent",
-            "disposition",
-            "garden",
-            "balcony",
-            "cellar",
-            "loggie",
-            "elevator",
-            "terrace",
-            "garage",
-            "parking",
-            "poi_distance",
-        ]
+
 
         scoring_weights = {
             "normalized_area": self.weight_area,
@@ -288,9 +290,8 @@ class UserPreferences:
         # if sum(weights for weights in scoring_weights.values() if weights is not None) != len(scoring_weights):
         #     raise ValueError("Sum of weights must be equal to it's length")
 
-
         # Normalize columns
-        for col in scoring_columns:
+        for col in SCORING_COLUMNS:
             max_val = df[col].max()
             min_val = df[col].min()
             denominator = max_val - min_val
@@ -303,7 +304,7 @@ class UserPreferences:
             else:
                 df["normalized_" + col] = (df[col] - min_val) / denominator
 
-        scoring_columns = ["normalized_" + col for col in scoring_columns]
+        scoring_columns = ["normalized_" + col for col in SCORING_COLUMNS]
         # Calculate score
         df["sum"] = (df[scoring_columns] * pd.Series(scoring_weights)).sum(axis=1)
         # normalize sum
