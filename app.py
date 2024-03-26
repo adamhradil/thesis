@@ -383,4 +383,4 @@ if __name__ == "__main__":
     else:
         # thread = threading.Thread(target=crawl_regularly, args=(True,))
         # thread.start()
-        app.run(debug=True)
+        app.run(debug=True, host="0.0.0.0")
