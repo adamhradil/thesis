@@ -157,13 +157,13 @@ def format_result(df: pd.DataFrame):
     df["sum"] = df["sum"].apply(
         lambda x: str(int(round(x, 2) * 100)) + "/100" if x > 0 else ""
     )
-    print(
-        tabulate(
-            df[["sum", "address", "rent", "disposition", "area", "url"]],
-            tablefmt="grid",
-            headers=["id", "sum", "address", "rent", "disposition", "area", "url"],
-        )
-    )
+    # print(
+    #     tabulate(
+    #         df[["sum", "address", "rent", "disposition", "area", "url"]],
+    #         tablefmt="grid",
+    #         headers=["id", "sum", "address", "rent", "disposition", "area", "url"],
+    #     )
+    # )
     return df
 
 
