@@ -1,12 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Hello World!</h1>
-    <h2>Welcome to FlaskApp!</h2>
-    <h3>{{ utc_dt }}</h3>
+    <h1>Real Estate Listings</h1>
     <table border="1">
         <tr>
-            <th>id</th>
             <th>sum</th>
             <th>address</th>
             <th>rent</th>
@@ -16,7 +13,6 @@
         </tr>
         {% for row in listings_df.iterrows() %}
         <tr>
-            <td>{{ row[1]['id'] }}</td>
             <td>{{ row[1]['sum'] }}</td>
             <td>{{ row[1]['address'] }}</td>
             <td>{{ row[1]['rent'] }}</td>
