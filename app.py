@@ -78,7 +78,7 @@ def index():
 
         df = analyze_listings(DB_FILE, user_preferences)
     return render_template(
-        "index.html", utc_dt=datetime.datetime.utcnow(), preferences=user_preferences, listings_df=format_result(df)
+        "index.html", utc_dt=datetime.datetime.utcnow(), preferences=user_preferences, sorting_columns=SCORING_COLUMNS, listings_df=format_result(df)
     )
 
 
@@ -332,7 +332,7 @@ def analyze_listings(db_file: str, user_preferences: UserPreferences):
         return df
     df = user_preferences.calculate_score(df)
 
-    notify_user(df)
+    # notify_user(df)
     return df
 
 
