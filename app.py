@@ -63,21 +63,21 @@ def index():
             print(request.form)
             if 'rentbutton' in request.form.keys():
                 if request.form['rentbutton'] == '+':
-                    if user_preferences.weight_rent <= 10:
+                    if user_preferences.weight_rent < 10:
                         user_preferences.weight_rent = user_preferences.weight_rent + 1
                 elif request.form['rentbutton'] == '-':
                     if user_preferences.weight_rent > 0:
                         user_preferences.weight_rent = user_preferences.weight_rent - 1
             if 'poidistancebutton' in request.form.keys():
                 if request.form['poidistancebutton'] == '+':
-                    if user_preferences.weight_poi_distance <= 10:
+                    if user_preferences.weight_poi_distance < 10:
                         user_preferences.weight_poi_distance = user_preferences.weight_poi_distance + 1
                 elif request.form['poidistancebutton'] == '-':
                     if user_preferences.weight_poi_distance > 0:
                         user_preferences.weight_poi_distance = user_preferences.weight_poi_distance - 1
             if 'areabutton' in request.form.keys():
                 if request.form['areabutton'] == '+':
-                    if user_preferences.weight_area <= 10:
+                    if user_preferences.weight_area < 10:
                             user_preferences.weight_area = user_preferences.weight_area + 1
                 elif request.form['areabutton'] == '-':
                     if user_preferences.weight_area > 0:
