@@ -28,11 +28,10 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
 
     # %%
     # drop public_transport column, it's not useful for now
-    df.drop(columns=["public_transport"], inplace=True)
+    # df.drop(columns=["public_transport"], inplace=True)
     # drop security_deposit column
     df.drop(columns=["security_deposit"], inplace=True)
 
-    df.drop(columns=["pets"], inplace=True)
     df.drop(columns=["service_fees"], inplace=True)
 
     # %% [markdown]
