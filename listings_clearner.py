@@ -113,6 +113,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     df.balcony = df.balcony.apply(
         lambda x: 1 if isinstance(x, str) and "balk" in x.lower() else x
     )
+    df.balcony = df.balcony.fillna(0)
 
     # %%
     df.balcony.unique()
@@ -127,6 +128,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     df.cellar = df.cellar.apply(
         lambda x: 1 if isinstance(x, str) and "sklep" in x.lower() else x
     )
+    df.cellar = df.cellar.fillna(0)
 
     # %%
     df.cellar.unique()
@@ -147,6 +149,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     df.elevator = df.elevator.apply(
         lambda x: 1 if isinstance(x, str) and "výtah" in x.lower() else x
     ).apply(lambda x: 0 if x == 2 else x)
+    df.elevator = df.elevator.fillna(0)
 
     # %%
     df.elevator.unique()
@@ -186,6 +189,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
             else x
         )
     ).astype(float)
+    df.garden = df.garden.fillna(0)
 
     # %% [markdown]
     # ## Furnished
@@ -213,6 +217,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
 
     # %%
     df.garage = df.garage.apply(lambda x: 1 if isinstance(x, str) and "Garáž" in x else x)
+    df.garage = df.garage.fillna(0)
     df.garage.unique()
 
     # %% [markdown]
@@ -225,6 +230,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     df.loggie = df.loggie.apply(
         lambda x: 1 if isinstance(x, str) and "Lodžie" in x else x
     ).astype(float)
+    df.loggie = df.loggie.fillna(0)
     df.loggie.unique()
 
     # %% [markdown]
@@ -237,6 +243,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     df.parking = df.parking.apply(
         lambda x: 1 if isinstance(x, str) and "Parkování" in x else x
     ).astype(float)
+    df.parking = df.parking.fillna(0)
     df.parking.unique()
 
     # %% [markdown]
@@ -297,6 +304,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     df.loc[:, "terrace"] = df["terrace"].apply(
         lambda x: 1 if isinstance(x, str) and "Terasa" in x else x
     )
+    df.terrace = df.terrace.fillna(0)
     df.loc[:, "terrace"].unique()
 
     # %% [markdown]
