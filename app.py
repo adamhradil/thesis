@@ -173,7 +173,9 @@ def crawl_regularly(crawl=True):
 
     user_preferences = load_preferences()
 
-    analyze_listings(DB_FILE, user_preferences)
+    df = analyze_listings(DB_FILE, user_preferences)
+
+    notify_user(df, last_crawl_time)
 
 
 def format_result(df: pd.DataFrame):
@@ -199,7 +201,7 @@ def format_result(df: pd.DataFrame):
     return df
 
 
-def notify_user(df: pd.DataFrame):
+def notify_user(df: pd.DataFrame, last_crawl_time: datetime.datetime):
     with open(LAST_CRAWL_FILE, "r", encoding="utf-8") as f:
         last_crawl_time = datetime.datetime.fromisoformat(f.read())
 
@@ -215,18 +217,14 @@ def notify_user(df: pd.DataFrame):
     webhook = DiscordWebhook(url=WEBHOOK_URL, username="Real Estate")
 
     embed = DiscordEmbed(
-        title="Embed Title", description="Your Embed Description", color="03b2f8"
+        title="Nové inzeráty nalezeny", description="", color="03b2f8"
     )
-    embed.set_author(
-        name="Author Name",
-        url="https://github.com/lovvskillz",
-        icon_url="https://avatars0.githubusercontent.com/u/14542790",
-    )
-    embed.set_footer(text="Embed Footer Text")
     embed.set_timestamp()
     # Set `inline=False` for the embed field to occupy the whole line
     # discord message length should be limited
-    df = df.head(10)
+    df = df[df["updated"] == last_crawl_time]
+    df = format_result(df)
+    df = df.head(5)
     for record in df.to_dict(orient="records"):
         embed.add_embed_field(
             name=f"{record['score']} - {record['address']}",
@@ -235,9 +233,10 @@ def notify_user(df: pd.DataFrame):
         )
 
     webhook.add_embed(embed)
-    response = webhook.execute()
-    if response.status_code != 200:
-        print("Error sending the message to discord")
+    if not df.empty():
+        response = webhook.execute()
+        if response.status_code != 200:
+            print("Error sending the message to discord")
 
 
 def get_point(address) -> None | Point:
@@ -347,7 +346,6 @@ def analyze_listings(db_file: str, user_preferences: UserPreferences):
         return df
     df = user_preferences.calculate_score(df)
 
-    # notify_user(df)
     return df
 
 
@@ -395,7 +393,7 @@ def run_spiders(json_output: str):
             exporter.export_item(item)
         exporter.finish_exporting()
     print(
-        f"{datetime.datetime.utcnow().isoformat()}: scraped items saved to {output_file}"
+        f"{datetime.datetime.now().isoformat()}: scraped items saved to {output_file}"
     )
 
     end = time.time()
@@ -405,7 +403,7 @@ def run_spiders(json_output: str):
 
     # writing the last crawl time to a file
     with open(LAST_CRAWL_FILE, "w", encoding="utf-8") as f:
-        f.write(datetime.datetime.utcnow().isoformat())
+        f.write(datetime.datetime.now().isoformat())
 
 
 if __name__ == "__main__":
