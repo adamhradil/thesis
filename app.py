@@ -155,7 +155,7 @@ def save_preferences(user_preferences: UserPreferences) -> None:
 def crawl_regularly(crawl=True):
     # while True:
     print("starting crawling")
-    global items
+    global items  # pylint: disable=global-statement
     if crawl:
         run_spiders(SCRAPER_OUTPUT_FILE)
     else:
@@ -233,7 +233,7 @@ def notify_user(df: pd.DataFrame, last_crawl_time: datetime.datetime):
         )
 
     webhook.add_embed(embed)
-    if not df.empty():
+    if not df.empty:
         response = webhook.execute()
         if response.status_code != 200:
             print("Error sending the message to discord")
