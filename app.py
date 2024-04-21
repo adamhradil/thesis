@@ -31,10 +31,12 @@ from listings_cleaner import clean_listing_database
 
 
 CRAWL = False
-LAST_CRAWL_FILE = "last_crawl.txt"
-SCRAPER_OUTPUT_FILE = "scraped_listings.json"
+USER_DATA_DIR = "userdata"
+LAST_CRAWL_FILE = USER_DATA_DIR + "/" + "last_crawl.txt"
+SCRAPER_OUTPUT_FILE = USER_DATA_DIR + "/" + "scraped_listings.json"
+PREFERENCES_FILE = USER_DATA_DIR + "/" + "preferences.json"
 POI = "NTK Praha"
-DB_FILE = "listings.db"
+DB_FILE = USER_DATA_DIR + "/" + "listings.db"
 items = []
 load_dotenv()
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
@@ -50,7 +52,7 @@ app.config["SECRET_KEY"] = SECRET_KEY
 @app.route("/", methods=["GET", "POST"])
 def index():
     user_preferences = load_preferences()
-    if not os.path.exists("preferences.json"):
+    if not os.path.exists(PREFERENCES_FILE):
         flash("fill out the preferences before viewing the listings")
         return redirect(url_for("preferences"))
     if not os.path.exists(DB_FILE):
@@ -132,7 +134,7 @@ def preferences():
 
 
 def load_preferences() -> UserPreferences:
-    if not os.path.exists("preferences.json"):
+    if not os.path.exists(PREFERENCES_FILE):
         p = UserPreferences()
         # default values for empty preferences
         p.listing_type = "rent"
@@ -141,14 +143,14 @@ def load_preferences() -> UserPreferences:
         save_preferences(p)
         return p
 
-    with open("preferences.json", "r", encoding="utf-8") as f:
+    with open(PREFERENCES_FILE, "r", encoding="utf-8") as f:
         user_preferences = json.load(f)
 
     return UserPreferences.from_dict(UserPreferences, data=user_preferences)
 
 
 def save_preferences(user_preferences: UserPreferences) -> None:
-    with open("preferences.json", "w", encoding="utf-8") as f:
+    with open(PREFERENCES_FILE, "w", encoding="utf-8") as f:
         f.write(json.dumps(user_preferences.to_dict()))
 
 
@@ -184,7 +186,9 @@ def format_result(df: pd.DataFrame):
     df = df.sort_values(by="score", ascending=False, inplace=False)
     df.price = df.price.apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
     df.area = df.area.apply(lambda x: str(int(x)) + " m2" if x > 0 else "")
-    df.poi_distance = df.poi_distance.apply(lambda x: str(int(x)) + " m" if x >= 0 else "")
+    df.poi_distance = df.poi_distance.apply(
+        lambda x: str(int(x)) + " m" if x >= 0 else ""
+    )
     df.garden = df.garden.apply(lambda x: str(int(x)) + " m2" if x > 0 else "Ne")
     df.score = df.score.apply(lambda x: round(x, 2) if x > 0 else 0)
     for col in [
@@ -216,9 +220,7 @@ def notify_user(df: pd.DataFrame, last_crawl_time: datetime.datetime):
         return
     webhook = DiscordWebhook(url=WEBHOOK_URL, username="Real Estate")
 
-    embed = DiscordEmbed(
-        title="Nové inzeráty nalezeny", description="", color="03b2f8"
-    )
+    embed = DiscordEmbed(title="Nové inzeráty nalezeny", description="", color="03b2f8")
     embed.set_timestamp()
     # Set `inline=False` for the embed field to occupy the whole line
     # discord message length should be limited
