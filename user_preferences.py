@@ -202,9 +202,9 @@ class UserPreferences:
                 df = df[df["parking"] != 1]
         if self.garden is not None:
             if self.garden is True:
-                df = df[df["garden"].isnull() == False]
+                df = df[df["garden"] > 0]
             else:
-                df = df[df["garden"].isnull() == True]
+                df = df[df["garden"] <= 0]
 
         if self.description:
             df = df[
