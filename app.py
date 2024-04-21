@@ -14,7 +14,6 @@ import pandas as pd  # type: ignore
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from flask import Flask, render_template, flash, redirect, request, url_for
 from dotenv import load_dotenv
-# import threading
 
 from forms import UserPreferencesForm
 
@@ -51,25 +50,25 @@ app.config["SECRET_KEY"] = SECRET_KEY
 @app.route("/", methods=["GET", "POST"])
 def index():
     user_preferences = load_preferences()
-    if not os.path.exists('preferences.json'):
+    if not os.path.exists("preferences.json"):
         flash("fill out the preferences before viewing the listings")
-        return redirect(url_for('preferences'))
+        return redirect(url_for("preferences"))
     if not os.path.exists(DB_FILE):
         flash("No listings found, please run the scraper with --crawl option")
-        return redirect(url_for('preferences'))
+        return redirect(url_for("preferences"))
     else:
-        if request.method == 'POST':
+        if request.method == "POST":
             print(request.form)
 
             for column in SCORING_COLUMNS:
-                button = column + '_button'
-                weight = 'weight_' + column
+                button = column + "_button"
+                weight = "weight_" + column
                 if button in request.form.keys():
                     weight_value = getattr(user_preferences, weight)
-                    if request.form[button] == '+':
+                    if request.form[button] == "+":
                         if weight_value < 10:
                             setattr(user_preferences, weight, weight_value + 1)
-                    elif request.form[button] == '-':
+                    elif request.form[button] == "-":
                         if weight_value > 0:
                             setattr(user_preferences, weight, weight_value - 1)
 
@@ -77,24 +76,30 @@ def index():
 
         df = analyze_listings(DB_FILE, user_preferences)
     return render_template(
-        "index.html", utc_dt=datetime.datetime.utcnow(), preferences=user_preferences, sorting_columns=SCORING_COLUMNS, listings_df=format_result(df)
+        "index.html",
+        utc_dt=datetime.datetime.utcnow(),
+        preferences=user_preferences,
+        sorting_columns=SCORING_COLUMNS,
+        listings_df=format_result(df),
     )
 
 
 @app.route("/preferences", methods=["GET", "POST"])
 def preferences():
-    if request.method == "GET":        
+    if request.method == "GET":
         form = UserPreferencesForm(request.form)
         user_preferences = load_preferences()
         # loop through all fields of preferences
         for key, value in user_preferences.to_dict().items():
-            if value == None:
+            if value is None:
                 continue
-            if key == 'available_from':
+            if key == "available_from":
                 continue
-            if key == 'points_of_interest':
-                getattr(form, key).data = f"{';'.join([str(x[0])+','+str(x[1]) for x in value])}"
-                continue    
+            if key == "points_of_interest":
+                getattr(form, key).data = (
+                    f"{';'.join([str(x[0])+','+str(x[1]) for x in value])}"
+                )
+                continue
             getattr(form, key).data = value
     # if submit is pushed
     if request.method == "POST":
@@ -118,7 +123,9 @@ def preferences():
                 user_preferences.status = [PropertyStatus(x) for x in value]
                 continue
             if key == "points_of_interest":
-                user_preferences.points_of_interest = [Point(value) for value in value.split(";")]
+                user_preferences.points_of_interest = [
+                    Point(value) for value in value.split(";")
+                ]
                 continue
             setattr(user_preferences, key, value)
         save_preferences(user_preferences)
@@ -153,7 +160,7 @@ def crawl_regularly(crawl=True):
     if crawl:
         run_spiders(SCRAPER_OUTPUT_FILE)
     else:
-        with open(SCRAPER_OUTPUT_FILE, "r", encoding='utf-8') as f:
+        with open(SCRAPER_OUTPUT_FILE, "r", encoding="utf-8") as f:
             items = json.load(f)
 
     listings = []
@@ -168,8 +175,6 @@ def crawl_regularly(crawl=True):
     user_preferences = load_preferences()
 
     analyze_listings(DB_FILE, user_preferences)
-        # print("sleeping for 15 minutes")
-        # time.sleep(900)
 
 
 def format_result(df: pd.DataFrame):
@@ -356,20 +361,20 @@ def run_spiders(json_output: str):
                     AppleWebKit/537.36 (KHTML, like Gecko)
                     Chrome/60.0.3112.113 Safari/537.36""",
             },
-            "ITEM_PIPELINES": { "__main__.ItemCollectorPipeline": 100 }
+            "ITEM_PIPELINES": {"__main__.ItemCollectorPipeline": 100},
         }
     )
 
     start = time.time()
     preferences = load_preferences()
     spider_settings = {}
-    spider_settings['listing_type'] = preferences.listing_type
-    spider_settings['estate_type'] = preferences.estate_type
-    spider_settings['location'] = preferences.location
+    spider_settings["listing_type"] = preferences.listing_type
+    spider_settings["estate_type"] = preferences.estate_type
+    spider_settings["location"] = preferences.location
 
     crawler = process.create_crawler(SearchFlatsSpider)
     crawler2 = process.create_crawler(SrealitySpider)
-    
+
     process.crawl(crawler, spider_settings)
     process.crawl(crawler2, spider_settings)
     process.start()
@@ -399,6 +404,4 @@ if __name__ == "__main__":
     if len(args) > 0 and args[0] == "--crawl":
         crawl_regularly()
     else:
-        # thread = threading.Thread(target=crawl_regularly, args=(True,))
-        # thread.start()
         app.run(debug=True, host="0.0.0.0")

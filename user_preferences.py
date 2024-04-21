@@ -165,7 +165,6 @@ class UserPreferences:
             df = df[df["floor"] >= self.floor]
         if self.available_from:
             df = df[df["available_from"] >= self.available_from]
-
         if self.balcony is not None:
             if self.balcony is True:
                 df = df[df["balcony"] == 1]
@@ -201,7 +200,6 @@ class UserPreferences:
                 df = df[df["parking"] == 1]
             else:
                 df = df[df["parking"] != 1]
-
         if self.garden is not None:
             if self.garden is True:
                 df = df[df["garden"].isnull() == False]
