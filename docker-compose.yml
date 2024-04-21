@@ -1,0 +1,15 @@
+services:
+  webapp:
+    build: 
+      dockerfile: webapp.Dockerfile
+      context: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./userdata:/usr/src/app/userdata
+  crawler:
+    build:
+      dockerfile: crawler.Dockerfile
+      context: .
+    volumes:
+      - ./userdata:/usr/src/app/userdata
