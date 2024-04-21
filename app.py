@@ -103,6 +103,8 @@ def preferences():
                     f"{';'.join([str(x[0])+','+str(x[1]) for x in value])}"
                 )
                 continue
+            if "weight_" in key:
+                continue
             getattr(form, key).data = value
     # if submit is pushed
     if request.method == "POST":
