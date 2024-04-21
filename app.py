@@ -128,7 +128,12 @@ def preferences():
 
 def load_preferences() -> UserPreferences:
     if not os.path.exists("preferences.json"):
-        return UserPreferences()
+        p = UserPreferences()
+        # default values for empty preferences
+        p.listing_type = "rent"
+        p.estate_type = "apartment"
+        p.location = "Praha"
+        return p
 
     with open("preferences.json", "r", encoding="utf-8") as f:
         user_preferences = json.load(f)
