@@ -150,7 +150,7 @@ def load_preferences() -> UserPreferences:
     with open(PREFERENCES_FILE, "r", encoding="utf-8") as f:
         user_preferences = json.load(f)
 
-    return UserPreferences.from_dict(UserPreferences, data=user_preferences)
+    return UserPreferences.from_dict(data=user_preferences)
 
 
 def save_preferences(user_preferences: UserPreferences) -> None:

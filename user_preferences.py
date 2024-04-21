@@ -73,16 +73,10 @@ class UserPreferences:
 
         self.min_score: None | int = 0
 
-    def validate_weights(self):
-        # each attribute containing weight_ in the name must be larger than 0
-        
-        for weight in scoring_weights.values():
-            if weight is not None and weight <= 0:
-                raise ValueError("Each weight must be larger than 0")
-
     # initialize class from json
+    @classmethod
     def from_dict(cls, data):
-        user_preferences = cls()
+        user_preferences = UserPreferences()
         for key, value in data.items():
             if value is None:
                 continue
