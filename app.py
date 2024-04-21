@@ -183,9 +183,17 @@ def format_result(df: pd.DataFrame):
     df = df.sort_values(by="score", ascending=False, inplace=False)
     df["price"] = df["price"].apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
     df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2" if x > 0 else "")
-    df["score"] = df["score"].apply(
-        lambda x: round(x, 2) if x > 0 else 0
-    )
+    df["score"] = df["score"].apply(lambda x: round(x, 2) if x > 0 else 0)
+    for col in [
+        "balcony",
+        "cellar",
+        "loggie",
+        "elevator",
+        "terrace",
+        "garage",
+        "parking",
+    ]:
+        df[col] = df[col].apply(lambda x: "Ano" if x else "Ne")
     df = df.head(30)
     return df
 
