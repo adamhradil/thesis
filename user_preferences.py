@@ -58,20 +58,20 @@ class UserPreferences:
 
         self.description: None | str = None  # description contains a word?
 
-        self.weight_area: None | float = None
-        self.weight_rent: None | float = None
-        self.weight_disposition: None | float = None
-        self.weight_garden: None | float = None
-        self.weight_balcony: None | float = None
-        self.weight_cellar: None | float = None
-        self.weight_loggie: None | float = None
-        self.weight_elevator: None | float = None
-        self.weight_terrace: None | float = None
-        self.weight_garage: None | float = None
-        self.weight_parking: None | float = None
-        self.weight_poi_distance: None | float = None
+        self.weight_area: None | float = 1
+        self.weight_rent: None | float = 1
+        self.weight_disposition: None | float = 1
+        self.weight_garden: None | float = 1
+        self.weight_balcony: None | float = 1
+        self.weight_cellar: None | float = 1
+        self.weight_loggie: None | float = 1
+        self.weight_elevator: None | float = 1
+        self.weight_terrace: None | float = 1
+        self.weight_garage: None | float = 1
+        self.weight_parking: None | float = 1
+        self.weight_poi_distance: None | float = 1
 
-        self.min_score: None | int = 1
+        self.min_score: None | int = 0
 
     def validate_weights(self):
         # each attribute containing weight_ in the name must be larger than 0

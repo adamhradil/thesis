@@ -11,7 +11,6 @@ from scrapy.exporters import JsonItemExporter  # type: ignore
 from geopy.geocoders import Nominatim  # type: ignore
 from geopy import Point  # type: ignore
 import pandas as pd  # type: ignore
-from tabulate import tabulate  # type: ignore
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from flask import Flask, render_template, flash, redirect, request, url_for
 from dotenv import load_dotenv
@@ -182,13 +181,7 @@ def format_result(df: pd.DataFrame):
     df["sum"] = df["sum"].apply(
         lambda x: round(x, 2) if x > 0 else 0
     )
-    # print(
-    #     tabulate(
-    #         df[["sum", "address", "rent", "disposition", "area", "url"]],
-    #         tablefmt="grid",
-    #         headers=["id", "sum", "address", "rent", "disposition", "area", "url"],
-    #     )
-    # )
+    df = df.head(30)
     return df
 
 
