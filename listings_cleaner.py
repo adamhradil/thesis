@@ -247,13 +247,13 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     df.parking.unique()
 
     # %% [markdown]
-    # ## Rent
+    # ## price
 
     # %%
-    df.rent.unique()
+    df.price.unique()
 
     # %%
-    df.loc[:, "rent"] = df.rent.apply(
+    df.loc[:, "price"] = df.price.apply(
         lambda x: (
             int(x.replace(" ", "").replace("Kč", "").replace("€", ""))
             if isinstance(x, str)
@@ -261,7 +261,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
         )
     ).astype(float)
 
-    df.rent.sort_values().unique()
+    df.price.sort_values().unique()
 
     # %% [markdown]
     # ## Status

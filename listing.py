@@ -13,7 +13,7 @@ class Listing:
         self.disposition = self._value_factory("disposition", data)
         self.floor = self._value_factory("floor", data)
         self.furnished = self._value_factory("furnished", data)
-        self.rent = self._value_factory("rent", data)
+        self.price = self._value_factory("price", data)
         self.security_deposit = self._value_factory("security_deposit", data)
         self.service_fees = self._value_factory("service_fees", data)
         self.status = self._value_factory("status", data)
@@ -65,9 +65,9 @@ class Listing:
             return False
         if user_preferences.max_area and self.area > user_preferences.max_area:
             return False
-        if user_preferences.min_price and self.rent < user_preferences.min_price:
+        if user_preferences.min_price and self.price < user_preferences.min_price:
             return False
-        if user_preferences.max_price and self.rent > user_preferences.max_price:
+        if user_preferences.max_price and self.price > user_preferences.max_price:
             return False
         if (
             user_preferences.ownership_type

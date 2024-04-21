@@ -11,7 +11,7 @@ from furnished import Furnished
 
 SCORING_COLUMNS = [
     "area",
-    "rent",
+    "price",
     "disposition",
     "garden",
     "balcony",
@@ -59,7 +59,7 @@ class UserPreferences:
         self.description: None | str = None  # description contains a word?
 
         self.weight_area: None | float = 1
-        self.weight_rent: None | float = 1
+        self.weight_price: None | float = 1
         self.weight_disposition: None | float = 1
         self.weight_garden: None | float = 1
         self.weight_balcony: None | float = 1
@@ -129,7 +129,7 @@ class UserPreferences:
             "floor": self.floor,
             "description": self.description,
             "weight_area": self.weight_area,
-            "weight_rent": self.weight_rent,
+            "weight_price": self.weight_price,
             "weight_disposition": self.weight_disposition,
             "weight_garden": self.weight_garden,
             "weight_balcony": self.weight_balcony,
@@ -158,9 +158,9 @@ class UserPreferences:
         if self.max_area:
             df = df[df["area"] <= self.max_area]
         if self.min_price:
-            df = df[df["rent"] >= self.min_price]
+            df = df[df["price"] >= self.min_price]
         if self.max_price:
-            df = df[df["rent"] <= self.max_price]
+            df = df[df["price"] <= self.max_price]
         if self.floor:
             df = df[df["floor"] >= self.floor]
         if self.available_from:
@@ -275,7 +275,7 @@ class UserPreferences:
 
         scoring_weights = {
             "normalized_area": self.weight_area,
-            "normalized_rent": self.weight_rent,
+            "normalized_price": self.weight_price,
             "normalized_disposition": self.weight_disposition,
             "normalized_garden": self.weight_garden,
             "normalized_balcony": self.weight_balcony,
@@ -299,7 +299,7 @@ class UserPreferences:
                 denominator = (
                     1e-10  # Add a small epsilon value to avoid division by zero
                 )
-            if col == "poi_distance" or col == "rent":
+            if col == "poi_distance" or col == "price":
                 df["normalized_" + col] = (max_val - df[col]) / denominator
             else:
                 df["normalized_" + col] = (df[col] - min_val) / denominator

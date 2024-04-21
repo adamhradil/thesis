@@ -176,7 +176,7 @@ def format_result(df: pd.DataFrame):
     if df.empty:
         return df
     df = df.sort_values(by="score", ascending=False, inplace=False)
-    df["rent"] = df["rent"].apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
+    df["price"] = df["price"].apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
     df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2" if x > 0 else "")
     df["score"] = df["score"].apply(
         lambda x: round(x, 2) if x > 0 else 0
@@ -216,7 +216,7 @@ def notify_user(df: pd.DataFrame):
     for record in df.to_dict(orient="records"):
         embed.add_embed_field(
             name=f"{record['score']} - {record['address']}",
-            value=f"{record['rent']}\n{record['disposition']} - {record['area']}\n{record['url']}",
+            value=f"{record['price']}\n{record['disposition']} - {record['area']}\n{record['url']}",
             inline=False,
         )
 
@@ -302,7 +302,7 @@ def analyze_listings(db_file: str, user_preferences: UserPreferences):
         [
             "address",
             "area",
-            "rent",
+            "price",
             "disposition",
             "floor",
             "furnished",
