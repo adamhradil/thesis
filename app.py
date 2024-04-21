@@ -168,6 +168,8 @@ def crawl_regularly(crawl=True):
 
 
 def format_result(df: pd.DataFrame):
+    if df.empty:
+        return df
     df = df.sort_values(by="sum", ascending=False, inplace=False)
     df["rent"] = df["rent"].apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
     df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2" if x > 0 else "")
