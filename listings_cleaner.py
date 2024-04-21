@@ -3,8 +3,8 @@
 
 # %%
 import sys
-import unidecode
-import pandas as pd  # type: ignore
+import unidecode  # pylint: disable=import-error
+import pandas as pd  # type: ignore pylint: disable=import-error
 import numpy as np
 from database_wrapper import DatabaseWrapper
 from sreality_scraper.sreality.spiders.sreality_spider import SrealityUrlBuilder
@@ -66,7 +66,11 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # ## Area
 
     # %%
-    df.area = df.area.apply(lambda x: int(unidecode.unidecode(x).replace(" ", "")) if isinstance(x, str) else x)
+    df.area = df.area.apply(
+        lambda x: (
+            int(unidecode.unidecode(x).replace(" ", "")) if isinstance(x, str) else x
+        )
+    )
 
     # %% [markdown]
     # ## Available from
@@ -161,9 +165,12 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     df.floor.unique()
 
     # %%
-    df.loc[:, "floor"] = df.floor.replace(". podlaží.*", "", regex=True).replace(
-        " z celkem.*", "", regex=True
-    ).replace(" včetně.*", "", regex=True).replace(" underground.*", "", regex=True)
+    df.loc[:, "floor"] = (
+        df.floor.replace(". podlaží.*", "", regex=True)
+        .replace(" z celkem.*", "", regex=True)
+        .replace(" včetně.*", "", regex=True)
+        .replace(" underground.*", "", regex=True)
+    )
     df.floor.unique()
 
     # %%
@@ -200,7 +207,10 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     # %%
     df.furnished = df.furnished.apply(
         lambda x: (
-            str(x).replace("2", "Nevybaveno").replace("3", "Částečně").replace("1", "Vybaveno")
+            str(x)
+            .replace("2", "Nevybaveno")
+            .replace("3", "Částečně")
+            .replace("1", "Vybaveno")
             if isinstance(x, int)
             else x
         )
@@ -216,7 +226,9 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
     df.garage.unique()
 
     # %%
-    df.garage = df.garage.apply(lambda x: 1 if isinstance(x, str) and "Garáž" in x else x)
+    df.garage = df.garage.apply(
+        lambda x: 1 if isinstance(x, str) and "Garáž" in x else x
+    )
     df.garage = df.garage.fillna(0)
     df.garage.unique()
 

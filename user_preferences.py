@@ -1,8 +1,8 @@
 from datetime import date
 import numpy as np  # type: ignore
-import pandas as pd  # type: ignore
-from geopy import Point  # type: ignore
-from geopy.distance import distance  # type: ignore
+import pandas as pd  # type: ignore pylint: disable=import-error
+from geopy import Point  # type: ignore pylint: disable=import-error
+from geopy.distance import distance  # type: ignore pylint: disable=import-error
 from disposition import Disposition
 from property_status import PropertyStatus
 from property_type import PropertyType
@@ -23,6 +23,7 @@ SCORING_COLUMNS = [
     "parking",
     "poi_distance",
 ]
+
 
 class UserPreferences:
     def __init__(self) -> None:
@@ -91,7 +92,9 @@ class UserPreferences:
             elif key == "available_from":
                 user_preferences.available_from = date.fromisoformat(value)
             elif key == "points_of_interest":
-                user_preferences.points_of_interest = [Point(latitude=point[0], longitude=point[1]) for point in value]
+                user_preferences.points_of_interest = [
+                    Point(latitude=point[0], longitude=point[1]) for point in value
+                ]
             else:
                 setattr(user_preferences, key, value)
         return user_preferences
@@ -102,13 +105,21 @@ class UserPreferences:
             "location": self.location,
             "estate_type": self.estate_type,
             "listing_type": self.listing_type,
-            "points_of_interest": [(point.latitude, point.longitude) for point in self.points_of_interest] if self.points_of_interest else None,
-            "disposition": [d.value for d in self.disposition] if self.disposition else None,
+            "points_of_interest": (
+                [(point.latitude, point.longitude) for point in self.points_of_interest]
+                if self.points_of_interest
+                else None
+            ),
+            "disposition": (
+                [d.value for d in self.disposition] if self.disposition else None
+            ),
             "min_area": self.min_area,
             "max_area": self.max_area,
             "min_price": self.min_price,
             "max_price": self.max_price,
-            "available_from": self.available_from.isoformat() if self.available_from else None,
+            "available_from": (
+                self.available_from.isoformat() if self.available_from else None
+            ),
             "balcony": self.balcony,
             "cellar": self.cellar,
             "elevator": self.elevator,
@@ -240,9 +251,12 @@ class UserPreferences:
             # print(f"{central_latitude}, {central_longitude}")
 
             for i, row in df.iterrows():
-                df.loc[i, "poi_distance"] = int(distance(  # type: ignore
-                    (central_latitude, central_longitude), (row.gps_lat, row.gps_lon)
-                ).m)
+                df.loc[i, "poi_distance"] = int(
+                    distance(  # type: ignore
+                        (central_latitude, central_longitude),
+                        (row.gps_lat, row.gps_lon),
+                    ).m
+                )
             df.poi_distance = df.poi_distance.astype(int)
         else:
             df["poi_distance"] = 0
@@ -263,8 +277,6 @@ class UserPreferences:
         }
         df.disposition = df.disposition.map(disposition_mapping)
 
-
-
         scoring_weights = {
             "normalized_area": self.weight_area,
             "normalized_price": self.weight_price,
@@ -279,8 +291,6 @@ class UserPreferences:
             "normalized_parking": self.weight_parking,
             "normalized_poi_distance": self.weight_poi_distance,
         }
-        # if sum(weights for weights in scoring_weights.values() if weights is not None) != len(scoring_weights):
-        #     raise ValueError("score of weights must be equal to it's length")
 
         # Normalize columns
         for col in SCORING_COLUMNS:
@@ -291,7 +301,7 @@ class UserPreferences:
                 denominator = (
                     1e-10  # Add a small epsilon value to avoid division by zero
                 )
-            if col == "poi_distance" or col == "price":
+            if col in ("poi_distance", "price"):
                 df["normalized_" + col] = (max_val - df[col]) / denominator
             else:
                 df["normalized_" + col] = (df[col] - min_val) / denominator
@@ -301,9 +311,11 @@ class UserPreferences:
         df["score"] = (df[scoring_columns] * pd.Series(scoring_weights)).sum(axis=1)
         # normalize score
         # df["score"] = (df["score"] - df["score"].min()) / (df["score"].max() - df["score"].min())
-        df.disposition = df.disposition.map({v: k for k, v in disposition_mapping.items()})
+        df.disposition = df.disposition.map(
+            {v: k for k, v in disposition_mapping.items()}
+        )
 
         if self.min_score:
-            df = df[df["score"] >= self.min_score/100]
+            df = df[df["score"] >= self.min_score / 100]
 
         return df

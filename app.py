@@ -6,13 +6,13 @@ import time
 import sys
 import os
 
-from scrapy.crawler import CrawlerProcess  # type: ignore
-from scrapy.exporters import JsonItemExporter  # type: ignore
-from geopy.geocoders import Nominatim  # type: ignore
-from geopy import Point  # type: ignore
-import pandas as pd  # type: ignore
-from discord_webhook import DiscordWebhook, DiscordEmbed
-from flask import Flask, render_template, flash, redirect, request, url_for
+from scrapy.crawler import CrawlerProcess  # type: ignore pylint: disable=import-error
+from scrapy.exporters import JsonItemExporter  # type: ignore pylint: disable=import-error
+from geopy.geocoders import Nominatim  # type: ignore pylint: disable=import-error
+from geopy import Point  # type: ignore pylint: disable=import-error
+import pandas as pd  # type: ignore pylint: disable=import-error
+from discord_webhook import DiscordWebhook, DiscordEmbed  # pylint: disable=import-error
+from flask import Flask, render_template, flash, redirect, request, url_for  # pylint: disable=import-error
 from dotenv import load_dotenv
 
 from forms import UserPreferencesForm
@@ -60,25 +60,24 @@ def index():
     if not os.path.exists(DB_FILE):
         flash("No listings found, please run the scraper with --crawl option")
         return redirect(url_for("preferences"))
-    else:
-        if request.method == "POST":
-            print(request.form)
+    if request.method == "POST":
+        print(request.form)
 
-            for column in SCORING_COLUMNS:
-                button = column + "_button"
-                weight = "weight_" + column
-                if button in request.form.keys():
-                    weight_value = getattr(user_preferences, weight)
-                    if request.form[button] == "+":
-                        if weight_value < 10:
-                            setattr(user_preferences, weight, weight_value + 1)
-                    elif request.form[button] == "-":
-                        if weight_value > 0:
-                            setattr(user_preferences, weight, weight_value - 1)
+        for column in SCORING_COLUMNS:
+            button = column + "_button"
+            weight = "weight_" + column
+            if button in request.form.keys():
+                weight_value = getattr(user_preferences, weight)
+                if request.form[button] == "+":
+                    if weight_value < 10:
+                        setattr(user_preferences, weight, weight_value + 1)
+                elif request.form[button] == "-":
+                    if weight_value > 0:
+                        setattr(user_preferences, weight, weight_value - 1)
 
-            save_preferences(user_preferences)
+        save_preferences(user_preferences)
 
-        df = analyze_listings(DB_FILE, user_preferences)
+    df = analyze_listings(DB_FILE, user_preferences)
     return render_template(
         "index.html",
         preferences=user_preferences,
@@ -113,7 +112,7 @@ def preferences():
         for key, value in form.data.items():
             if value is None or value == "":
                 continue
-            if key == "csrf_token" or key == "submit":
+            if key in ("csrf_token", "submit"):
                 continue
             if key == "disposition":
                 user_preferences.disposition = [Disposition(x) for x in value]
@@ -250,8 +249,7 @@ def get_point(address) -> None | Point:
     location = geolocator.geocode(address)
     if location:
         return Point(location.latitude, location.longitude)  # type: ignore
-    else:
-        return None
+    return None
 
 
 def item_scraped(item):
@@ -356,7 +354,7 @@ def analyze_listings(db_file: str, user_preferences: UserPreferences):
 
 
 # pipeline to fill the items list
-class ItemCollectorPipeline(object):
+class ItemCollectorPipeline():
     def __init__(self):
         self.ids_seen = set()
 
@@ -379,11 +377,11 @@ def run_spiders(json_output: str):
     )
 
     start = time.time()
-    preferences = load_preferences()
+    p = load_preferences()
     spider_settings = {}
-    spider_settings["listing_type"] = preferences.listing_type
-    spider_settings["estate_type"] = preferences.estate_type
-    spider_settings["location"] = preferences.location
+    spider_settings["listing_type"] = p.listing_type
+    spider_settings["estate_type"] = p.estate_type
+    spider_settings["location"] = p.location
 
     crawler = process.create_crawler(SearchFlatsSpider)
     crawler2 = process.create_crawler(SrealitySpider)

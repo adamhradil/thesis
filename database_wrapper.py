@@ -1,6 +1,6 @@
 from sqlite3 import Error, connect
+import pandas as pd  # pylint: disable=import-error
 from listing import Listing
-import pandas as pd
 
 
 class DatabaseWrapper:
@@ -20,21 +20,30 @@ class DatabaseWrapper:
         try:
             c = self.conn.cursor()
             listing = Listing()
-            columns = [attr for attr in dir(listing) if not callable(getattr(listing, attr)) and not attr.startswith("__")]
-            create_table_sql = f"CREATE TABLE IF NOT EXISTS listings ({','.join(columns)});"
+            columns = [
+                attr
+                for attr in dir(listing)
+                if not callable(getattr(listing, attr)) and not attr.startswith("__")
+            ]
+            create_table_sql = (
+                f"CREATE TABLE IF NOT EXISTS listings ({','.join(columns)});"
+            )
             c.execute(create_table_sql)
         except Error as e:
             print(e)
-
 
     def insert_listing(self, listing, date_created):
         """
         Insert a Listing into the listings table
         """
         if self.conn is None:
-            return
-        columns = [attr for attr in dir(listing) if not callable(getattr(listing, attr)) and not attr.startswith("__")]
-        placeholders = ','.join(['?' for _ in columns])
+            return None
+        columns = [
+            attr
+            for attr in dir(listing)
+            if not callable(getattr(listing, attr)) and not attr.startswith("__")
+        ]
+        placeholders = ",".join(["?" for _ in columns])
         sql = f"INSERT INTO listings({','.join(columns)}) VALUES({placeholders}) "
         cur = self.conn.cursor()
         if date_created is not None:
@@ -51,7 +60,6 @@ class DatabaseWrapper:
         for idx, col in enumerate(cursor.description):
             d[col[0]] = row[idx]
         return d
-
 
     def get_listing(self, listing_id):
         """
@@ -87,7 +95,11 @@ class DatabaseWrapper:
         """
         if self.conn is None:
             return
-        attributes = [attr for attr in dir(listing) if not callable(getattr(listing, attr)) and not attr.startswith('__')]
+        attributes = [
+            attr
+            for attr in dir(listing)
+            if not callable(getattr(listing, attr)) and not attr.startswith("__")
+        ]
         sql = f"UPDATE listings SET {','.join([f'{attr}=?' for attr in attributes if attr != 'id'])} WHERE id=?"
         cur = self.conn.cursor()
         if date_updated is not None:
@@ -96,7 +108,9 @@ class DatabaseWrapper:
             listing.last_seen = last_seen
         if created is not None:
             listing.created = created
-        attribute_values = [getattr(listing, attr) for attr in attributes if attr != 'id']
+        attribute_values = [
+            getattr(listing, attr) for attr in attributes if attr != "id"
+        ]
         attribute_values.append(listing.id)
         cur.execute(sql, attribute_values)
         self.conn.commit()

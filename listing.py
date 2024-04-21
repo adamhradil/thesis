@@ -1,5 +1,4 @@
-from enum import Enum
-import scrapy
+import scrapy  # pylint: disable=import-error
 from user_preferences import UserPreferences
 
 
@@ -41,7 +40,11 @@ class Listing:
             excluded_attributes = ["last_seen", "updated", "created"]
             return all(
                 getattr(self, attr) == getattr(other, attr)
-                for attr in [attr for attr in dir(self) if not callable(getattr(self, attr)) and not attr.startswith("__")]
+                for attr in [
+                    attr
+                    for attr in dir(self)
+                    if not callable(getattr(self, attr)) and not attr.startswith("__")
+                ]
                 if attr not in excluded_attributes
             )
         return False
@@ -52,65 +55,9 @@ class Listing:
     def _value_factory(self, attribute: str, data: dict | scrapy.Item | tuple | None):
         if data is None:
             return None
-        if isinstance(data, scrapy.Item) or isinstance(data, dict):
+        if isinstance(data, (scrapy.Item, dict)):
             return data.get(attribute, "")
 
-    def is_relevant(self, user_preferences: UserPreferences):
-        if (
-            user_preferences.dispositions
-            and self.disposition not in user_preferences.dispositions
-        ):
-            return False
-        if user_preferences.min_area and self.area < user_preferences.min_area:
-            return False
-        if user_preferences.max_area and self.area > user_preferences.max_area:
-            return False
-        if user_preferences.min_price and self.price < user_preferences.min_price:
-            return False
-        if user_preferences.max_price and self.price > user_preferences.max_price:
-            return False
-        if (
-            user_preferences.ownership_type
-            and self.type not in user_preferences.ownership_type
-        ):
-            return False
-        if user_preferences.state and self.status not in user_preferences.state:
-            return False
-        if (
-            user_preferences.property_material
-            and self.penb not in user_preferences.property_material
-        ):
-            return False
-        if user_preferences.furnished and self.furnished != user_preferences.furnished:
-            return False
-        if (
-            user_preferences.balcony is not None
-            and self.balcony != user_preferences.balcony
-        ):
-            return False
-        if (
-            user_preferences.terrace is not None
-            and self.terrace != user_preferences.terrace
-        ):
-            return False
-        if (
-            user_preferences.loggia is not None
-            and self.loggie != user_preferences.loggia
-        ):
-            return False
-        if (
-            user_preferences.cellar is not None
-            and self.cellar != user_preferences.cellar
-        ):
-            return False
-        if (
-            user_preferences.garden is not None
-            and self.garden != user_preferences.garden
-        ):
-            return False
-        return True
 
     def calculate_score(self, user_preferences: UserPreferences):
         pass
-
-
