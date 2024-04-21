@@ -288,7 +288,7 @@ class UserPreferences:
             "normalized_poi_distance": self.weight_poi_distance,
         }
         # if sum(weights for weights in scoring_weights.values() if weights is not None) != len(scoring_weights):
-        #     raise ValueError("Sum of weights must be equal to it's length")
+        #     raise ValueError("score of weights must be equal to it's length")
 
         # Normalize columns
         for col in SCORING_COLUMNS:
@@ -306,12 +306,12 @@ class UserPreferences:
 
         scoring_columns = ["normalized_" + col for col in SCORING_COLUMNS]
         # Calculate score
-        df["sum"] = (df[scoring_columns] * pd.Series(scoring_weights)).sum(axis=1)
-        # normalize sum
-        # df["sum"] = (df["sum"] - df["sum"].min()) / (df["sum"].max() - df["sum"].min())
+        df["score"] = (df[scoring_columns] * pd.Series(scoring_weights)).sum(axis=1)
+        # normalize score
+        # df["score"] = (df["score"] - df["score"].min()) / (df["score"].max() - df["score"].min())
         df.disposition = df.disposition.map({v: k for k, v in disposition_mapping.items()})
 
         if self.min_score:
-            df = df[df["sum"] >= self.min_score/100]
+            df = df[df["score"] >= self.min_score/100]
 
         return df

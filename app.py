@@ -175,10 +175,10 @@ def crawl_regularly(crawl=True):
 def format_result(df: pd.DataFrame):
     if df.empty:
         return df
-    df = df.sort_values(by="sum", ascending=False, inplace=False)
+    df = df.sort_values(by="score", ascending=False, inplace=False)
     df["rent"] = df["rent"].apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
     df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2" if x > 0 else "")
-    df["sum"] = df["sum"].apply(
+    df["score"] = df["score"].apply(
         lambda x: round(x, 2) if x > 0 else 0
     )
     df = df.head(30)
@@ -215,7 +215,7 @@ def notify_user(df: pd.DataFrame):
     df = df.head(10)
     for record in df.to_dict(orient="records"):
         embed.add_embed_field(
-            name=f"{record['sum']} - {record['address']}",
+            name=f"{record['score']} - {record['address']}",
             value=f"{record['rent']}\n{record['disposition']} - {record['area']}\n{record['url']}",
             inline=False,
         )
