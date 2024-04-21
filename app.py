@@ -29,7 +29,7 @@ from property_type import PropertyType
 from listing import Listing
 from user_preferences import UserPreferences, SCORING_COLUMNS
 from disposition import Disposition
-from listings_clearner import clean_listing_database
+from listings_cleaner import clean_listing_database
 
 
 CRAWL = False
