@@ -77,7 +77,6 @@ def index():
         df = analyze_listings(DB_FILE, user_preferences)
     return render_template(
         "index.html",
-        utc_dt=datetime.datetime.utcnow(),
         preferences=user_preferences,
         sorting_columns=SCORING_COLUMNS,
         listings_df=format_result(df),
@@ -181,10 +180,11 @@ def format_result(df: pd.DataFrame):
     if df.empty:
         return df
     df = df.sort_values(by="score", ascending=False, inplace=False)
-    df["price"] = df["price"].apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
-    df["area"] = df["area"].apply(lambda x: str(int(x)) + " m2" if x > 0 else "")
-    df["poi_distance"] = df["poi_distance"].apply(lambda x: str(int(x)) + " m" if x > 0 else "")
-    df["score"] = df["score"].apply(lambda x: round(x, 2) if x > 0 else 0)
+    df.price = df.price.apply(lambda x: str(int(x)) + " Kč" if x > 0 else "")
+    df.area = df.area.apply(lambda x: str(int(x)) + " m2" if x > 0 else "")
+    df.poi_distance = df.poi_distance.apply(lambda x: str(int(x)) + " m" if x >= 0 else "")
+    df.garden = df.garden.apply(lambda x: str(int(x)) + " m2" if x > 0 else "Ne")
+    df.score = df.score.apply(lambda x: round(x, 2) if x > 0 else 0)
     for col in [
         "balcony",
         "cellar",
