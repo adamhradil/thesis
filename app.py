@@ -133,6 +133,7 @@ def load_preferences() -> UserPreferences:
         p.listing_type = "rent"
         p.estate_type = "apartment"
         p.location = "Praha"
+        save_preferences(p)
         return p
 
     with open("preferences.json", "r", encoding="utf-8") as f:
