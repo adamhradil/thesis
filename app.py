@@ -32,6 +32,8 @@ from listings_cleaner import clean_listing_database
 
 CRAWL = False
 USER_DATA_DIR = "userdata"
+if not os.path.exists(USER_DATA_DIR):
+    os.makedirs(USER_DATA_DIR)
 LAST_CRAWL_FILE = USER_DATA_DIR + "/" + "last_crawl.txt"
 SCRAPER_OUTPUT_FILE = USER_DATA_DIR + "/" + "scraped_listings.json"
 PREFERENCES_FILE = USER_DATA_DIR + "/" + "preferences.json"
