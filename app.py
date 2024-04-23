@@ -225,10 +225,7 @@ def notify_user(df: pd.DataFrame, last_crawl_time: datetime.datetime):
 
     embed = DiscordEmbed(title="Nové inzeráty nalezeny", description="", color="03b2f8")
     embed.set_timestamp()
-    # Set `inline=False` for the embed field to occupy the whole line
     # discord message length should be limited
-    df = df[df["updated"] == last_crawl_time]
-    df = format_result(df)
     df = df.head(5)
     for record in df.to_dict(orient="records"):
         embed.add_embed_field(
