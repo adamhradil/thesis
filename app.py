@@ -40,7 +40,7 @@ PREFERENCES_FILE = USER_DATA_DIR + "/" + "preferences.json"
 POI = "NTK Praha"
 DB_FILE = USER_DATA_DIR + "/" + "listings.db"
 items = []
-load_dotenv()
+load_dotenv(USER_DATA_DIR + "/" + ".env")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 if WEBHOOK_URL == "" or WEBHOOK_URL is None:
     print("Webhook URL not found in .env file")
