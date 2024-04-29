@@ -12,7 +12,14 @@ from geopy.geocoders import Nominatim  # type: ignore pylint: disable=import-err
 from geopy import Point  # type: ignore pylint: disable=import-error
 import pandas as pd  # type: ignore pylint: disable=import-error
 from discord_webhook import DiscordWebhook, DiscordEmbed  # pylint: disable=import-error
-from flask import Flask, render_template, flash, redirect, request, url_for  # pylint: disable=import-error
+from flask import (
+    Flask,
+    render_template,
+    flash,
+    redirect,
+    request,
+    url_for,
+)  # pylint: disable=import-error
 from dotenv import load_dotenv
 
 from forms import UserPreferencesForm
@@ -351,7 +358,7 @@ def analyze_listings(db_file: str, user_preferences: UserPreferences):
 
 
 # pipeline to fill the items list
-class ItemCollectorPipeline():
+class ItemCollectorPipeline:
     def __init__(self):
         self.ids_seen = set()
 
