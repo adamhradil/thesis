@@ -6,7 +6,6 @@ from wtforms import (
     BooleanField,
     SubmitField,
     SelectMultipleField,
-    DateField,
 )
 from wtforms.validators import DataRequired, Optional
 from disposition import Disposition
@@ -25,27 +24,24 @@ class UserPreferencesForm(FlaskForm):
     listing_type = SelectField(
         "Listing Type", validators=[DataRequired()], choices=["sale", "price"]
     )
-    points_of_interest = StringField("Points of Interest", validators=[Optional()])
+    points_of_interest = StringField("Points of Interest")
     disposition = SelectMultipleField(
         "Disposition",
         choices=[(disposition.value) for disposition in Disposition],
         validators=[Optional()],
     )
-    min_area = IntegerField("Minimum Area", validators=[Optional()])
-    max_area = IntegerField("Maximum Area", validators=[Optional()])
-    min_price = IntegerField("Minimum Price", validators=[Optional()])
-    max_price = IntegerField("Maximum Price", validators=[Optional()])
-    available_from = DateField(
-        "Available From", format="%Y-%m-%d", validators=[Optional()]
-    )
-    balcony = BooleanField("Balcony", validators=[Optional()])
-    cellar = BooleanField("Cellar", validators=[Optional()])
-    elevator = BooleanField("Elevator", validators=[Optional()])
-    garage = BooleanField("Garage", validators=[Optional()])
-    garden = BooleanField("Garden", validators=[Optional()])
-    loggie = BooleanField("Loggie", validators=[Optional()])
-    parking = BooleanField("Parking", validators=[Optional()])
-    terrace = BooleanField("Terrace", validators=[Optional()])
+    min_area = IntegerField("Minimum Area")
+    max_area = IntegerField("Maximum Area")
+    min_price = IntegerField("Minimum Price")
+    max_price = IntegerField("Maximum Price")
+    balcony = BooleanField("Balcony")
+    cellar = BooleanField("Cellar")
+    elevator = BooleanField("Elevator")
+    garage = BooleanField("Garage")
+    garden = BooleanField("Garden")
+    loggie = BooleanField("Loggie")
+    parking = BooleanField("Parking")
+    terrace = BooleanField("Terrace")
     type = SelectMultipleField(
         "Property Type",
         choices=[(type.value) for type in PropertyType],
@@ -61,7 +57,6 @@ class UserPreferencesForm(FlaskForm):
         choices=[(status.value) for status in PropertyStatus],
         validators=[Optional()],
     )
-    floor = IntegerField("Floor", validators=[Optional()])
-    description = StringField("Description", validators=[Optional()])
+    floor = IntegerField("Floor")
+    description = StringField("Description")
     submit = SubmitField("Submit")
-    min_score = IntegerField("Minimum Score", validators=[Optional()])

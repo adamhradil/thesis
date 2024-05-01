@@ -72,8 +72,6 @@ class UserPreferences:
         self.weight_parking: None | float = 1
         self.weight_poi_distance: None | float = 1
 
-        self.min_score: None | int = 0
-
     # initialize class from json
     @classmethod
     def from_dict(cls, data):
@@ -145,7 +143,6 @@ class UserPreferences:
             "weight_garage": self.weight_garage,
             "weight_parking": self.weight_parking,
             "weight_poi_distance": self.weight_poi_distance,
-            "min_score": self.min_score,
         }
 
     def filter_listings(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -314,8 +311,5 @@ class UserPreferences:
         df.disposition = df.disposition.map(
             {v: k for k, v in disposition_mapping.items()}
         )
-
-        if self.min_score:
-            df = df[df["score"] >= self.min_score / 100]
 
         return df

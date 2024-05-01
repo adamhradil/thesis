@@ -46,8 +46,12 @@
         margin-top: 20px;
     }
 
-    input[type="text"], select {
-        width: 100%;
+    .center-text {
+        text-align: center;
+    }
+
+    input[type="text"], input[type="number"], select {
+        width: fit-content;
         padding: 12px 20px;
         margin: 8px 0;
         display: inline-block;
@@ -72,6 +76,30 @@
     .error {
         color: red;
     }
+
+    .preferences {
+        margin-left: 20%;
+        margin-right: 20%;
+    }
+
+    .form-row {
+        display: flex;
+        justify-content: space-evenly;
+    }
+    
+    .form-group {
+        flex: 1;
+        margin-right: 20px;
+    }
+    
+    .form-group:last-child {
+        margin-right: 0;
+    }
+
+    .full-width {
+        width: 100%;
+    }
+    
 </style>
 
 <body>

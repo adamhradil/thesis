@@ -1,24 +1,120 @@
 {% extends "base.html" %}
 
+{% set group1 = "location",
+    "estate_type",
+    "listing_type",
+    "points_of_interest",
+    "disposition" %}
+
+{% set group2 = "min_area",
+    "max_area",
+    "min_price",
+    "max_price" %}
+
+{% set group3 = "balcony",
+    "cellar",
+    "elevator",
+    "garage",
+    "garden",
+    "loggie",
+    "parking",
+    "terrace" %}
+    
+{% set group4 = "type",
+    "furnished",
+    "status",
+    "floor",
+    "description" %}
+
+{% set groups = group1, group2, group3, group4 %}
 {% block content %}
-    <h1>User Preferences</h1>
-    <form action="" method="post" novalidate>
+    <h1 class="center-text">User Preferences</h1>
+    <form class="preferences" action="" method="post" novalidate>
         {{ form.hidden_tag() }}
-        {% for field in form %}
-            {% if field.type != "SubmitField" %}
-                <div class="form-group">
-                    {{ field.label }}<br>
-                    {{ field(class="form-control") }}<br>
-                    {% if field.errors %}
-                        <ul class="errors">
-                            {% for error in field.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-            {% endif %}
-        {% endfor %}
+
+        <div class="full-width">
+            <h2>Basic Infromation</h2>
+        </div>
+        <div class="form-row">
+            {{ form[group1[0]].label }}
+            {{ form[group1[1]].label }}
+            {{ form[group1[2]].label }}
+            {{ form[group1[3]].label }}
+            {{ form[group1[4]].label }}
+        </div>
+        <div class="form-row">
+            {{ form[group1[0]](class="form-control") }}
+            {{ form[group1[1]](class="form-control") }}
+            {{ form[group1[2]](class="form-control") }}
+            {{ form[group1[3]](class="form-control") }}
+            {{ form[group1[4]](class="form-control") }}
+        </div>
+
+        <div class="full-width">
+            <h2>Area, Price</h2>
+        </div>
+        <div class="form-row">
+            {{ form[group2[0]].label }}
+            {{ form[group2[1]].label }}
+            {{ form[group2[2]].label }}
+            {{ form[group2[3]].label }}
+        </div>
+        <div class="form-row">
+            {{ form[group2[0]](class="form-control") }}
+            {{ form[group2[1]](class="form-control") }}
+            {{ form[group2[2]](class="form-control") }}
+            {{ form[group2[3]](class="form-control") }}
+        </div>
+
+
+        <div class="full-width">
+            <h2>Features</h2>
+        </div>
+        <div class="form-row">
+            {{ form[group3[0]].label }}
+            {{ form[group3[1]].label }}
+            {{ form[group3[2]].label }}
+            {{ form[group3[3]].label }}
+            {{ form[group3[4]].label }}
+            {{ form[group3[5]].label }}
+            {{ form[group3[6]].label }}
+            {{ form[group3[7]].label }}
+        </div>
+        <div class="form-row">
+            {{ form[group3[0]](class="form-control") }}
+            {{ form[group3[1]](class="form-control") }}
+            {{ form[group3[2]](class="form-control") }}
+            {{ form[group3[3]](class="form-control") }}
+            {{ form[group3[4]](class="form-control") }}
+            {{ form[group3[5]](class="form-control") }}
+            {{ form[group3[6]](class="form-control") }}
+            {{ form[group3[7]](class="form-control") }}
+        </div>  
+
+        <div class="full-width">
+            <h2>Miscellaneous</h2>
+        </div>
+        <div class="form-row">
+            {{ form[group4[0]].label }}
+            {{ form[group4[1]].label }}
+            {{ form[group4[2]].label }}
+        </div>
+        <div class="form-row">
+            {{ form[group4[0]](class="form-control") }}
+            {{ form[group4[1]](class="form-control") }}
+            {{ form[group4[2]](class="form-control") }}
+        </div>
+        <div class="form-row">
+            
+            {{ form[group4[3]].label }}
+            {{ form[group4[4]].label }}
+        </div>
+        <div class="form-row">
+
+            {{ form[group4[3]](class="form-control") }}
+            {{ form[group4[4]](class="form-control") }}
+        </div>
+
         <div class="form-group">
             {{ form.submit(class="btn btn-primary") }}
         </div>
