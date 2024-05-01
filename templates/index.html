@@ -14,7 +14,7 @@
                 {% for col in display_columns %}
                     {% if col in sorting_columns %}
                         <th>
-                            {{ col }}
+                            {{ col }}<br/>
                             <button name='{{ col + "_button" }}' value="-">-</button>
                             {{ preferences["weight_" + col] }}
                             <button name='{{ col + "_button" }}' value="+">+</button>
