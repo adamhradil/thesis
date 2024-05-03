@@ -167,41 +167,13 @@ class UserPreferences:
             df = df[df["floor"] >= self.floor]
         if self.available_from:
             df = df[df["available_from"] >= self.available_from]
-        if self.balcony is not None:
-            if self.balcony is True:
-                df = df[df["balcony"] == 1]
-            else:
-                df = df[df["balcony"] != 1]
-        if self.cellar is not None:
-            if self.cellar is True:
-                df = df[df["cellar"] == 1]
-            else:
-                df = df[df["cellar"] != 1]
-        if self.loggie is not None:
-            if self.loggie is True:
-                df = df[df["loggie"] == 1]
-            else:
-                df = df[df["loggie"] != 1]
-        if self.elevator is not None:
-            if self.elevator is True:
-                df = df[df["elevator"] == 1]
-            else:
-                df = df[df["elevator"] != 1]
-        if self.terrace is not None:
-            if self.terrace is True:
-                df = df[df["terrace"] == 1]
-            else:
-                df = df[df["terrace"] != 1]
-        if self.garage is not None:
-            if self.garage is True:
-                df = df[df["garage"] == 1]
-            else:
-                df = df[df["garage"] != 1]
-        if self.parking is not None:
-            if self.parking is True:
-                df = df[df["parking"] == 1]
-            else:
-                df = df[df["parking"] != 1]
+       
+       
+        for attr in "balcony","cellar","loggie","elevator","terrace","garage","parking":
+            col = getattr(self, attr)
+            if col is not None and col is True:
+                df = df[df[attr] == 1]
+
         if self.garden is not None:
             if self.garden is True:
                 df = df[df["garden"] > 0]
