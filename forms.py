@@ -22,7 +22,7 @@ class UserPreferencesForm(FlaskForm):
         "Estate Type", validators=[DataRequired()], choices=["apartment", "house"]
     )
     listing_type = SelectField(
-        "Listing Type", validators=[DataRequired()], choices=["sale", "price"]
+        "Listing Type", validators=[DataRequired()], choices=["sale", "rent"]
     )
     points_of_interest = StringField("Points of Interest")
     disposition = SelectMultipleField(
