@@ -9,6 +9,17 @@ from property_type import PropertyType
 from furnished import Furnished
 
 
+BOOLEAN_COLUNNS = [
+    "balcony",
+    "cellar",
+    "loggie",
+    "elevator",
+    "terrace",
+    "garage",
+    "parking",
+]
+
+
 SCORING_COLUMNS = [
     "area",
     "price",
@@ -167,9 +178,8 @@ class UserPreferences:
             df = df[df["floor"] >= self.floor]
         if self.available_from:
             df = df[df["available_from"] >= self.available_from]
-       
-       
-        for attr in "balcony","cellar","loggie","elevator","terrace","garage","parking":
+
+        for attr in BOOLEAN_COLUNNS:
             col = getattr(self, attr)
             if col is not None and col is True:
                 df = df[df[attr] == 1]

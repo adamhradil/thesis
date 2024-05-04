@@ -12,7 +12,7 @@ from geopy.geocoders import Nominatim  # type: ignore pylint: disable=import-err
 from geopy import Point  # type: ignore pylint: disable=import-error
 import pandas as pd  # type: ignore pylint: disable=import-error
 from discord_webhook import DiscordWebhook, DiscordEmbed  # pylint: disable=import-error
-from flask import (
+from flask import (  # pylint: disable=import-error
     Flask,
     render_template,
     flash,
@@ -20,7 +20,7 @@ from flask import (
     request,
     url_for,
 )  # pylint: disable=import-error
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # pylint: disable=import-error
 
 from forms import UserPreferencesForm
 
@@ -32,7 +32,7 @@ from furnished import Furnished
 from property_status import PropertyStatus
 from property_type import PropertyType
 from listing import Listing
-from user_preferences import UserPreferences, SCORING_COLUMNS
+from user_preferences import UserPreferences, SCORING_COLUMNS, BOOLEAN_COLUNNS
 from disposition import Disposition
 from listings_cleaner import clean_listing_database
 
@@ -105,9 +105,9 @@ def preferences():
             if key == "available_from":
                 continue
             if key == "points_of_interest":
-                getattr(form, key).data = (
-                    f"{';'.join([str(x[0])+','+str(x[1]) for x in value])}"
-                )
+                getattr(
+                    form, key
+                ).data = f"{';'.join([str(x[0])+','+str(x[1]) for x in value])}"
                 continue
             if "weight_" in key:
                 continue
@@ -201,15 +201,7 @@ def format_result(df: pd.DataFrame):
     )
     df.garden = df.garden.apply(lambda x: str(int(x)) + " m2" if x > 0 else "Ne")
     df.score = df.score.apply(lambda x: round(x, 2) if x > 0 else 0)
-    for col in [
-        "balcony",
-        "cellar",
-        "loggie",
-        "elevator",
-        "terrace",
-        "garage",
-        "parking",
-    ]:
+    for col in BOOLEAN_COLUNNS:
         df[col] = df[col].apply(lambda x: "Ano" if x else "Ne")
     df = df.head(30)
     return df
@@ -320,7 +312,7 @@ def analyze_listings(db_file: str, user_preferences: UserPreferences):
     df = clean_listing_database(db_file)
 
     df = df[
-        [
+        [  # pylint: disable=duplicate-code
             "address",
             "area",
             "price",

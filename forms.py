@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm  # pylint: disable=import-error
-from wtforms import (
+from wtforms import (  # pylint: disable=import-error
     SelectField,
     StringField,
     IntegerField,
@@ -7,7 +7,7 @@ from wtforms import (
     SubmitField,
     SelectMultipleField,
 )
-from wtforms.validators import DataRequired, Optional
+from wtforms.validators import DataRequired, Optional  # pylint: disable=import-error
 from disposition import Disposition
 from property_type import PropertyType
 from furnished import Furnished

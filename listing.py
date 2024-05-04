@@ -57,7 +57,7 @@ class Listing:
             return None
         if isinstance(data, (scrapy.Item, dict)):
             return data.get(attribute, "")
-
+        return None
 
     def calculate_score(self, user_preferences: UserPreferences):
         pass
