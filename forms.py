@@ -16,47 +16,47 @@ from property_status import PropertyStatus
 
 class UserPreferencesForm(FlaskForm):
     location = SelectField(
-        "Location", validators=[DataRequired()], choices=["Praha", "Brno", "Ostrava"]
+        "Město", validators=[DataRequired()], choices=["Praha", "Brno", "Ostrava"]
     )
     estate_type = SelectField(
-        "Estate Type", validators=[DataRequired()], choices=["apartment", "house"]
+        "Typ nemovitosti", validators=[DataRequired()], choices=["byt", "dům"]
     )
     listing_type = SelectField(
-        "Listing Type", validators=[DataRequired()], choices=["sale", "rent"]
+        "Typ inzerátu", validators=[DataRequired()], choices=["prodej", "pronájem"]
     )
-    points_of_interest = StringField("Points of Interest")
+    points_of_interest = StringField("Body zájmu")
     disposition = SelectMultipleField(
-        "Disposition",
+        "Dispozice",
         choices=[(disposition.value) for disposition in Disposition],
         validators=[Optional()],
     )
-    min_area = IntegerField("Minimum Area")
-    max_area = IntegerField("Maximum Area")
-    min_price = IntegerField("Minimum Price")
-    max_price = IntegerField("Maximum Price")
-    balcony = BooleanField("Balcony")
-    cellar = BooleanField("Cellar")
-    elevator = BooleanField("Elevator")
-    garage = BooleanField("Garage")
-    garden = BooleanField("Garden")
-    loggie = BooleanField("Loggie")
-    parking = BooleanField("Parking")
-    terrace = BooleanField("Terrace")
+    min_area = IntegerField("Minimální rozloha")
+    max_area = IntegerField("Maximální rozloha")
+    min_price = IntegerField("Minimální cena")
+    max_price = IntegerField("Maximální cena")
+    balcony = BooleanField("Balkon")
+    cellar = BooleanField("Sklep")
+    elevator = BooleanField("Výtah")
+    garage = BooleanField("Garáž")
+    garden = BooleanField("Zahrada")
+    loggie = BooleanField("Lodžie")
+    parking = BooleanField("Parkování")
+    terrace = BooleanField("Terasa")
     type = SelectMultipleField(
-        "Property Type",
+        "Materiál",
         choices=[(type.value) for type in PropertyType],
         validators=[Optional()],
     )
     furnished = SelectMultipleField(
-        "Furnished",
+        "Vybavenost",
         choices=[(furnished.value) for furnished in Furnished],
         validators=[Optional()],
     )
     status = SelectMultipleField(
-        "Property Status",
+        "Stav",
         choices=[(status.value) for status in PropertyStatus],
         validators=[Optional()],
     )
-    floor = IntegerField("Floor")
-    description = StringField("Description")
-    submit = SubmitField("Submit")
+    floor = IntegerField("Patro")
+    description = StringField("Popis")
+    submit = SubmitField("Uložit")

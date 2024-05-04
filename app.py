@@ -24,8 +24,12 @@ from dotenv import load_dotenv  # pylint: disable=import-error
 
 from forms import UserPreferencesForm
 
-from bezrealitky_scraper.bezrealitky.spiders.search_flats import SearchFlatsSpider  # pylint: disable=import-error
-from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider  # pylint: disable=import-error
+from bezrealitky_scraper.bezrealitky.spiders.search_flats import (
+    SearchFlatsSpider,
+)  # pylint: disable=import-error
+from sreality_scraper.sreality.spiders.sreality_spider import (
+    SrealitySpider,
+)  # pylint: disable=import-error
 
 from database_wrapper import DatabaseWrapper
 from furnished import Furnished
@@ -85,11 +89,31 @@ def index():
         save_preferences(user_preferences)
 
     df = analyze_listings(DB_FILE, user_preferences)
+
+    column_names = {
+        "score": "Skóre",
+        "address": "Adresa",
+        "area": "Rozloha",
+        "price": "Cena",
+        "disposition": "Dispozice",
+        "garden": "Zahrada",
+        "balcony": "Balkon",
+        "cellar": "Sklep",
+        "loggie": "Lodžie",
+        "elevator": "Výtah",
+        "terrace": "Terasa",
+        "garage": "Garáž",
+        "parking": "Parkování",
+        "poi_distance": "Vzdálenost od bodů zájmu",
+        "url": "url",
+    }
+
     return render_template(
         "index.html",
         preferences=user_preferences,
         sorting_columns=SCORING_COLUMNS,
         listings_df=format_result(df),
+        column_names=column_names
     )
 
 
@@ -105,9 +129,9 @@ def preferences():
             if key == "available_from":
                 continue
             if key == "points_of_interest":
-                getattr(
-                    form, key
-                ).data = f"{';'.join([str(x[0])+','+str(x[1]) for x in value])}"
+                getattr(form, key).data = (
+                    f"{';'.join([str(x[0])+','+str(x[1]) for x in value])}"
+                )
                 continue
             if "weight_" in key:
                 continue
@@ -147,8 +171,8 @@ def load_preferences() -> UserPreferences:
     if not os.path.exists(PREFERENCES_FILE):
         p = UserPreferences()
         # default values for empty preferences
-        p.listing_type = "rent"
-        p.estate_type = "apartment"
+        p.listing_type = "pronájem"
+        p.estate_type = "byt"
         p.location = "Praha"
         save_preferences(p)
         return p

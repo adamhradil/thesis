@@ -7,20 +7,20 @@
 ] %}
 
 {% block content %}
-    <h1>Real Estate Listings</h1>
+    <h1>Nalezené inzeráty</h1>
     <form method="post">
         <table border="1">
             <tr>
                 {% for col in display_columns %}
                     {% if col in sorting_columns %}
                         <th>
-                            {{ col }}<br/>
+                            {{ column_names[col] }}<br/>
                             <button name='{{ col + "_button" }}' value="-">-</button>
                             {{ preferences["weight_" + col] }}
                             <button name='{{ col + "_button" }}' value="+">+</button>
                         </th>
                     {% else %}
-                        <th>{{ col }}</th>
+                        <th>{{ column_names[col] }}</th>
                     {% endif %}
                 {% endfor %}
             </tr>

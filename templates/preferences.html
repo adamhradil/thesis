@@ -28,12 +28,12 @@
 
 {% set groups = group1, group2, group3, group4 %}
 {% block content %}
-    <h1 class="center-text">User Preferences</h1>
+    <h1 class="center-text">Preference</h1>
     <form class="preferences" action="" method="post" novalidate>
         {{ form.hidden_tag() }}
 
         <div class="full-width">
-            <h2>Basic Infromation</h2>
+            <h2>Základní informace</h2>
         </div>
         <div class="form-row">
             {{ form[group1[0]].label }}
@@ -51,7 +51,7 @@
         </div>
 
         <div class="full-width">
-            <h2>Area, Price</h2>
+            <h2>Rozloha, Cena</h2>
         </div>
         <div class="form-row">
             {{ form[group2[0]].label }}
@@ -68,7 +68,7 @@
 
 
         <div class="full-width">
-            <h2>Features</h2>
+            <h2>Vybavenost</h2>
         </div>
         <div class="form-row">
             {{ form[group3[0]].label }}
@@ -92,7 +92,7 @@
         </div>  
 
         <div class="full-width">
-            <h2>Miscellaneous</h2>
+            <h2>Různé</h2>
         </div>
         <div class="form-row">
             {{ form[group4[0]].label }}
