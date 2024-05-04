@@ -104,7 +104,7 @@ def index():
         "terrace": "Terasa",
         "garage": "Garáž",
         "parking": "Parkování",
-        "poi_distance": "Vzdálenost od bodů zájmu",
+        "poi_distance": "Vzdálenost od bodů zájmu*",
         "url": "url",
     }
 
