@@ -170,6 +170,7 @@ def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
         .replace(" z celkem.*", "", regex=True)
         .replace(" včetně.*", "", regex=True)
         .replace(" underground.*", "", regex=True)
+        .replace(" podzemní.*", "", regex=True)
     )
     df.floor.unique()
 
