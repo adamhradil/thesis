@@ -5,9 +5,9 @@
 import sys
 import unidecode  # pylint: disable=import-error
 import pandas as pd  # type: ignore pylint: disable=import-error
-import numpy as np
+import numpy as np  # pylint: disable=import-error
 from database_wrapper import DatabaseWrapper
-from sreality_scraper.sreality.spiders.sreality_spider import SrealityUrlBuilder
+from sreality_scraper.sreality.spiders.sreality_spider import SrealityUrlBuilder  # pylint: disable=import-error
 
 
 def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:

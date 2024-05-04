@@ -25,7 +25,7 @@ from dotenv import load_dotenv  # pylint: disable=import-error
 from forms import UserPreferencesForm
 
 from bezrealitky_scraper.bezrealitky.spiders.search_flats import SearchFlatsSpider  # pylint: disable=import-error
-from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider
+from sreality_scraper.sreality.spiders.sreality_spider import SrealitySpider  # pylint: disable=import-error
 
 from database_wrapper import DatabaseWrapper
 from furnished import Furnished
