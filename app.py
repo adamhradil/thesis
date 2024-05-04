@@ -91,7 +91,7 @@ def index():
     df = analyze_listings(DB_FILE, user_preferences)
 
     column_names = {
-        "score": "Skóre",
+        "score": "Skóre*",
         "address": "Adresa",
         "area": "Rozloha",
         "price": "Cena",
@@ -104,7 +104,7 @@ def index():
         "terrace": "Terasa",
         "garage": "Garáž",
         "parking": "Parkování",
-        "poi_distance": "Vzdálenost od bodů zájmu*",
+        "poi_distance": "Vzdálenost od bodů zájmu**",
         "url": "url",
     }
 
