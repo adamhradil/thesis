@@ -141,8 +141,6 @@ def preferences():
         form = UserPreferencesForm(request.form)
         user_preferences = load_preferences()
         for key, value in form.data.items():
-            if value is None or value == "":
-                continue
             if key in ("csrf_token", "submit"):
                 continue
             if key == "disposition":
