@@ -1,5 +1,5 @@
 from datetime import date
-import numpy as np  # type: ignore
+import numpy as np  # type: ignore pylint: disable=import-error
 import pandas as pd  # type: ignore pylint: disable=import-error
 from geopy import Point  # type: ignore pylint: disable=import-error
 from geopy.distance import distance  # type: ignore pylint: disable=import-error
