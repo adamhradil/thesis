@@ -155,7 +155,7 @@ def preferences():
             if key == "status":
                 user_preferences.status = [PropertyStatus(x) for x in value]
                 continue
-            if key == "points_of_interest":
+            if key == "points_of_interest" and value != "":
                 user_preferences.points_of_interest = [
                     Point(value) for value in value.split(";")
                 ]
