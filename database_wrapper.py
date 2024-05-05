@@ -4,8 +4,17 @@ from listing import Listing
 
 
 class DatabaseWrapper:
+    """
+    A class that provides methods to interact with a SQLite listings database.
+    """
+
     def __init__(self, db_file):
-        """create a database connection to a SQLite database"""
+        """
+        Initialize the DatabaseWrapper object.
+
+        Parameters:
+        - db_file (str): The path to the SQLite database file.
+        """
         self.conn = None
         try:
             self.conn = connect(db_file)
@@ -14,7 +23,9 @@ class DatabaseWrapper:
             print(e)
 
     def create_table(self):
-        """create a table from the create_table_sql statement"""
+        """
+        Create a table in the database based on the attributes of the Listing class.
+        """
         if self.conn is None:
             return
         try:
@@ -34,7 +45,14 @@ class DatabaseWrapper:
 
     def insert_listing(self, listing, date_created):
         """
-        Insert a Listing into the listings table
+        Insert a Listing object into the listings table.
+
+        Parameters:
+        - listing (Listing): The Listing object to be inserted.
+        - date_created (str): The date the listing was first found.
+
+        Returns:
+        - int: The ID of the inserted listing.
         """
         if self.conn is None:
             return None
@@ -54,8 +72,17 @@ class DatabaseWrapper:
         self.conn.commit()
         return cur.lastrowid
 
-    # https://stackoverflow.com/a/3300514
     def dict_factory(self, cursor, row):
+        """
+        Convert a database row to a dictionary.
+
+        Parameters:
+        - cursor: The database cursor.
+        - row: The row to be converted.
+
+        Returns:
+        - dict: The converted row as a dictionary.
+        """
         d = {}
         for idx, col in enumerate(cursor.description):
             d[col[0]] = row[idx]
@@ -63,7 +90,13 @@ class DatabaseWrapper:
 
     def get_listing(self, listing_id):
         """
-        Query a Listing by id from the listings table
+        Query a Listing by ID from the listings table.
+
+        Parameters:
+        - listing_id (int): The ID of the listing to be queried.
+
+        Returns:
+        - Listing: The queried Listing object, or None if not found.
         """
         if self.conn is None:
             return None
@@ -80,7 +113,10 @@ class DatabaseWrapper:
 
     def remove_listing(self, listing_id):
         """
-        Remove a Listing by id from the listings table
+        Remove a Listing by ID from the listings table.
+
+        Parameters:
+        - listing_id (int): The ID of the listing to be removed.
         """
         if self.conn is None:
             return
@@ -91,7 +127,13 @@ class DatabaseWrapper:
 
     def update_listing(self, listing, created=None, date_updated=None, last_seen=None):
         """
-        Update a Listing in the listings table
+        Update a Listing in the listings table.
+
+        Parameters:
+        - listing (Listing): The Listing object to be updated.
+        - created (str): The date the listing was first found.
+        - date_updated (str): The date the listing was last updated.
+        - last_seen (str): The date the listing was last seen.
         """
         if self.conn is None:
             return
@@ -116,6 +158,12 @@ class DatabaseWrapper:
         self.conn.commit()
 
     def get_df(self):
+        """
+        Retrieve all listings from the listings table as a pandas DataFrame.
+
+        Returns:
+        - pandas.DataFrame: The retrieved listings as a DataFrame.
+        """
         if self.conn is None:
             return None
         self.conn.row_factory = None
@@ -124,5 +172,8 @@ class DatabaseWrapper:
         return df
 
     def close_conn(self):
+        """
+        Close the database connection.
+        """
         if self.conn:
             self.conn.close()

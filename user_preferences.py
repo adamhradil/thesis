@@ -37,7 +37,50 @@ SCORING_COLUMNS = [
 
 
 class UserPreferences:
+    """
+    Represents the user's preferences for property listings.
+
+    Attributes:
+        estate_type (None | str): The type of estate preferred by the user.
+        listing_type (None | str): The type of listing preferred by the user.
+        location (None | str): The preferred location for the property.
+        points_of_interest (None | list[Point]): The points of interest near the property.
+        disposition (None | list[Disposition]): The preferred disposition of the property.
+        min_area (None | int): The minimum area preferred by the user.
+        max_area (None | int): The maximum area preferred by the user.
+        min_price (None | int): The minimum price preferred by the user.
+        max_price (None | int): The maximum price preferred by the user.
+        available_from (None | date): The preferred availability date of the property.
+        balcony (None | bool): Whether the property should have a balcony.
+        cellar (None | bool): Whether the property should have a cellar.
+        elevator (None | bool): Whether the property should have an elevator.
+        garage (None | bool): Whether the property should have a garage.
+        garden (None | bool): Whether the property should have a garden.
+        loggie (None | bool): Whether the property should have a loggie.
+        parking (None | bool): Whether the property should have parking.
+        terrace (None | bool): Whether the property should have a terrace.
+        type (None | list[PropertyType]): The preferred property types.
+        furnished (None | list[Furnished]): The preferred furnishing types.
+        status (None | list[PropertyStatus]): The preferred property statuses.
+        floor (None | int): The preferred floor of the property.
+        description (None | str): The preferred description keyword for the property.
+        weight_area (None | float): The weight assigned to the area preference.
+        weight_price (None | float): The weight assigned to the price preference.
+        weight_disposition (None | float): The weight assigned to the disposition preference.
+        weight_garden (None | float): The weight assigned to the garden preference.
+        weight_balcony (None | float): The weight assigned to the balcony preference.
+        weight_cellar (None | float): The weight assigned to the cellar preference.
+        weight_loggie (None | float): The weight assigned to the loggie preference.
+        weight_elevator (None | float): The weight assigned to the elevator preference.
+        weight_terrace (None | float): The weight assigned to the terrace preference.
+        weight_garage (None | float): The weight assigned to the garage preference.
+        weight_parking (None | float): The weight assigned to the parking preference.
+        weight_poi_distance (None | float): The weight assigned to the points of interest distance preference.
+    """
     def __init__(self) -> None:
+        """
+        Initialize an UserPreferences object.
+        """
         self.estate_type: None | str = None
         self.listing_type: None | str = None
         self.location: None | str = None  # later region, city, district, street
@@ -86,6 +129,15 @@ class UserPreferences:
     # initialize class from json
     @classmethod
     def from_dict(cls, data):
+        """
+        Create a UserPreferences object from a dictionary.
+
+        Args:
+            data (dict): The dictionary containing the user preferences data.
+
+        Returns:
+            UserPreferences: The UserPreferences object created from the dictionary.
+        """
         user_preferences = UserPreferences()
         for key, value in data.items():
             if value is None:
@@ -110,6 +162,12 @@ class UserPreferences:
 
     # make class serializable to json
     def to_dict(self):
+        """
+        Converts the UserPreferences object to a dictionary.
+
+        Returns:
+            dict: A dictionary representation of the UserPreferences object.
+        """
         return {
             "location": self.location,
             "estate_type": self.estate_type,
@@ -157,6 +215,15 @@ class UserPreferences:
         }
 
     def filter_listings(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Filters the given DataFrame based on the user's preferences.
+
+        Args:
+            df (pd.DataFrame): The DataFrame to be filtered.
+
+        Returns:
+            pd.DataFrame: The filtered DataFrame.
+        """
         if self.disposition:
             df = df[df["disposition"].isin([d.value for d in self.disposition])]
         if self.type:
@@ -201,8 +268,18 @@ class UserPreferences:
         return df
 
     def calculate_score(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Calculates the score for each row in the given DataFrame based on the user's preferences.
+
+        Args:
+            df (pd.DataFrame): The DataFrame containing the data to be scored.
+
+        Returns:
+            pd.DataFrame: The DataFrame with an additional 'score' column representing the calculated score.
+
+        """
         if self.points_of_interest is not None and len(self.points_of_interest) > 0:
-            # https://stackoverflow.com/questions/37885798/how-to-calculate-the-midpoint-of-several-geolocations-in-python
+            # Calculate the central latitude and longitude
             x = 0.0
             y = 0.0
             z = 0.0
@@ -227,8 +304,7 @@ class UserPreferences:
             central_square_root = np.sqrt(x * x + y * y)
             central_latitude = np.degrees(np.arctan2(z, central_square_root))
 
-            # print(f"{central_latitude}, {central_longitude}")
-
+            # Calculate the distance from each row to the central latitude and longitude
             for i, row in df.iterrows():
                 df.loc[i, "poi_distance"] = int(
                     distance(  # type: ignore
@@ -240,6 +316,7 @@ class UserPreferences:
         else:
             df["poi_distance"] = 0
 
+        # Mapping for disposition values
         disposition_mapping = {
             "1+1": 1,
             "1+kk": 2,
@@ -256,6 +333,7 @@ class UserPreferences:
         }
         df.disposition = df.disposition.map(disposition_mapping)
 
+        # Mapping for scoring weights
         scoring_weights = {
             "normalized_area": self.weight_area,
             "normalized_price": self.weight_price,

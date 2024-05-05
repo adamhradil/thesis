@@ -11,6 +11,18 @@ from sreality_scraper.sreality.spiders.sreality_spider import SrealityUrlBuilder
 
 
 def clean_listing_database(filename: str = "listings.db") -> pd.DataFrame:
+    """
+    Cleans the listing database by performing various data cleaning operations.
+
+    Args:
+        filename (str, optional): The filename of the database. Defaults to "listings.db".
+
+    Returns:
+        pd.DataFrame: The cleaned dataframe.
+
+    Raises:
+        SystemExit: If there is no data to process in the database.
+    """
     # get the data from the database
     db = DatabaseWrapper(filename)
     df = db.get_df()

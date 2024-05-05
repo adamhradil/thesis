@@ -2,6 +2,9 @@ from enum import Enum
 
 
 class PropertyStatus(Enum):
+    """
+    Enum representing different property states.
+    """
     NEW = "Novostavba"
     VERY_GOOD = "Velmi dobrý"
     GOOD = "Dobrý"

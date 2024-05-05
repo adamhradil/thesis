@@ -2,6 +2,9 @@ from enum import Enum
 
 
 class Disposition(Enum):
+    """
+    Enum representing different types of property dispositions.
+    """
     ONE_PLUS_KK = "1+kk"
     ONE_PLUS_ONE = "1+1"
     TWO_PLUS_KK = "2+kk"

@@ -435,8 +435,6 @@ disable=raw-checker-failed,
         too-many-instance-attributes,
         too-many-statements,
         missing-module-docstring,
-        missing-class-docstring,
-        missing-function-docstring,
         fixme,
         no-name-in-module
 
