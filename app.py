@@ -19,17 +19,17 @@ from flask import (  # pylint: disable=import-error
     redirect,
     request,
     url_for,
-)  # pylint: disable=import-error
+)
 from dotenv import load_dotenv  # pylint: disable=import-error
 
 from forms import UserPreferencesForm
 
-from bezrealitky_scraper.bezrealitky.spiders.search_flats import (
+from bezrealitky_scraper.bezrealitky.spiders.search_flats import (  # pylint: disable=import-error
     SearchFlatsSpider,
-)  # pylint: disable=import-error
-from sreality_scraper.sreality.spiders.sreality_spider import (
+)
+from sreality_scraper.sreality.spiders.sreality_spider import (  # pylint: disable=import-error
     SrealitySpider,
-)  # pylint: disable=import-error
+)
 
 from database_wrapper import DatabaseWrapper
 from furnished import Furnished
