@@ -36,11 +36,18 @@ Build Docker Containers
 ```
 docker compose build --no-cache
 ```
-Start the Web Application
+Scrape the listings
+```
+docker compose up crawler
+```
+Start webapp and schedule scraping every 10 minutes
 ```
 docker compose up -d webapp
 (crontab -l 2>/dev/null; echo "*/10 * * * * /usr/bin/docker compose -f $(pwd)/docker-compose.yml up -d crawler") | crontab -
 ```
+## Acessing the web app
+http://127.0.0.1:5000
+
 ## Accessing logs 📜
 ```
 docker compose logs webapp
