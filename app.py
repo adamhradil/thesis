@@ -1,5 +1,3 @@
-# pylint: disable=missing-module-docstring, missing-function-docstring, missing-class-docstring, unused-argument
-
 import datetime
 import json
 import time
@@ -64,6 +62,13 @@ app.config["SECRET_KEY"] = SECRET_KEY
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    """
+    Render the index page with listings based on user preferences.
+
+    Returns:
+        A rendered HTML template with the index page, including user preferences,
+        sorting columns, and formatted listings data.
+    """
     user_preferences = load_preferences()
     if not os.path.exists(PREFERENCES_FILE):
         flash("fill out the preferences before viewing the listings")
@@ -119,6 +124,15 @@ def index():
 
 @app.route("/preferences", methods=["GET", "POST"])
 def preferences():
+    """
+    Handle user preferences form submission and rendering.
+
+    If the request method is GET, load the user's preferences and populate the form fields with the values.
+    If the request method is POST, save the submitted form data as the user's preferences.
+
+    Returns:
+        A rendered template for the preferences form.
+    """
     if request.method == "GET":
         form = UserPreferencesForm(request.form)
         user_preferences = load_preferences()
@@ -166,6 +180,12 @@ def preferences():
 
 
 def load_preferences() -> UserPreferences:
+    """
+    Load user preferences from a file or create default preferences if the file doesn't exist.
+
+    Returns:
+        UserPreferences: The loaded or default user preferences.
+    """
     if not os.path.exists(PREFERENCES_FILE):
         p = UserPreferences()
         # default values for empty preferences
@@ -182,11 +202,30 @@ def load_preferences() -> UserPreferences:
 
 
 def save_preferences(user_preferences: UserPreferences) -> None:
+    """
+    Save the user preferences to a file.
+
+    Args:
+        user_preferences (UserPreferences): The user preferences to be saved.
+
+    Returns:
+        None
+    """
     with open(PREFERENCES_FILE, "w", encoding="utf-8") as f:
         f.write(json.dumps(user_preferences.to_dict()))
 
 
 def crawl_regularly(crawl=True):
+    """
+    Crawls the real estate platforms for new listings and notifies the user about them.
+
+    Args:
+        crawl (bool, optional): Indicates whether to perform crawling or use existing data. 
+            Defaults to True.
+
+    Returns:
+        None
+    """
     # while True:
     print("starting crawling")
     global items  # pylint: disable=global-statement
@@ -213,6 +252,16 @@ def crawl_regularly(crawl=True):
 
 
 def format_result(df: pd.DataFrame):
+    """
+    Formats the given DataFrame by sorting it based on the 'score' column in descending order,
+    and applying specific formatting to certain columns.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to be formatted.
+
+    Returns:
+        pd.DataFrame: The formatted DataFrame.
+    """
     if df.empty:
         return df
     df = df.sort_values(by="score", ascending=False, inplace=False)
@@ -230,6 +279,17 @@ def format_result(df: pd.DataFrame):
 
 
 def notify_user(df: pd.DataFrame, last_crawl_time: datetime.datetime):
+    """
+    Notifies the user about new listings found in the DataFrame.
+
+    Args:
+        df (pd.DataFrame): The DataFrame containing the listings.
+        last_crawl_time (datetime.datetime): The last crawl time.
+
+    Returns:
+        None
+    """
+
     with open(LAST_CRAWL_FILE, "r", encoding="utf-8") as f:
         last_crawl_time = datetime.datetime.fromisoformat(f.read())
 
@@ -263,6 +323,16 @@ def notify_user(df: pd.DataFrame, last_crawl_time: datetime.datetime):
 
 
 def get_point(address) -> None | Point:
+    """
+    Retrieves the latitude and longitude coordinates of a given address.
+
+    Args:
+        address (str): The address to geocode.
+
+    Returns:
+        Point | None: A Point object representing the latitude and longitude coordinates
+        of the given address, or None if the address cannot be geocoded.
+    """
     geolocator = Nominatim(user_agent="distance_calculator")
     location = geolocator.geocode(address)
     if location:
@@ -271,6 +341,15 @@ def get_point(address) -> None | Point:
 
 
 def item_scraped(item):
+    """
+    Function to handle scraped items.
+
+    Args:
+        item (dict): The scraped item.
+
+    Returns:
+        None
+    """
     print(item["url"])
     items.append(item)
 
@@ -278,6 +357,17 @@ def item_scraped(item):
 def update_listing_database(
     db_file: str, listings: list[Listing], last_crawl_time: datetime.datetime
 ):
+    """
+    Updates the listing database with the provided listings.
+
+    Args:
+        db_file (str): The path to the database file.
+        listings (list[Listing]): A list of Listing objects to update the database with.
+        last_crawl_time (datetime.datetime): The timestamp of the last crawl.
+
+    Returns:
+        None
+    """
     print("updating the listing database")
     start = time.time()
     db = DatabaseWrapper(db_file)
@@ -331,6 +421,17 @@ def update_listing_database(
 
 
 def analyze_listings(db_file: str, user_preferences: UserPreferences):
+    """
+    Analyzes the listings in the given database file based on the user's preferences.
+
+    Args:
+        db_file (str): The path to the database file.
+        user_preferences (UserPreferences): An instance of the UserPreferences class containing the user's preferences.
+
+    Returns:
+        pandas.DataFrame: A DataFrame containing the analyzed listings.
+    """
+
     df = clean_listing_database(db_file)
 
     df = df[
@@ -373,15 +474,44 @@ def analyze_listings(db_file: str, user_preferences: UserPreferences):
 
 # pipeline to fill the items list
 class ItemCollectorPipeline:
+    """
+    A Scrapy pipeline class for collecting items.
+
+    Attributes:
+        ids_seen (set): A set to store the seen item IDs.
+
+    """
+
     def __init__(self):
         self.ids_seen = set()
 
-    def process_item(self, item, spider):
+    def process_item(self, item):
+        """
+        Process the given item and perform necessary operations.
+
+        Args:
+            item (dict): The item to be processed.
+            spider (Spider): The spider instance.
+
+        Returns:
+            None
+
+        """
         print(item["url"])
         items.append(item)
 
 
 def run_spiders(json_output: str):
+    """
+    Runs the web spiders to scrape data and save it to a JSON file.
+
+    Args:
+        json_output (str): The path to the output JSON file.
+
+    Returns:
+        None
+    """
+
     process = CrawlerProcess(
         settings={
             "LOG_LEVEL": "INFO",
