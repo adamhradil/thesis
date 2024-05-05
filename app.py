@@ -415,6 +415,9 @@ def update_listing_database(
             continue
         db.insert_listing(listing=listing, date_created=last_crawl_time)
         print(f"found a new listing: {listing.id}")
+
+    db.delete_old_listings(last_crawl_time)
+
     db.close_conn()
     end = time.time()
     print(f"updating db took {end - start}s")
@@ -485,7 +488,7 @@ class ItemCollectorPipeline:
     def __init__(self):
         self.ids_seen = set()
 
-    def process_item(self, item):
+    def process_item(self, item, spider):  # pylint: disable=unused-argument
         """
         Process the given item and perform necessary operations.
 
