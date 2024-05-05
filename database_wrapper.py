@@ -157,6 +157,23 @@ class DatabaseWrapper:
         cur.execute(sql, attribute_values)
         self.conn.commit()
 
+    def delete_old_listings(self, last_crawl_time):
+        """
+        Delete all listings with a last_seen date older than the last crawl time.
+
+        Parameters:
+        - last_crawl_time (str): The last crawl time.
+        """
+        if self.conn is None:
+            return
+        sql = "DELETE FROM listings WHERE last_seen < ?"
+        cur = self.conn.cursor()
+        cur.execute(sql, (last_crawl_time,))
+        deleted_ids = cur.fetchall()
+        for listing_id in deleted_ids:
+            print(f"Deleted listing with id: {listing_id}")
+        self.conn.commit()
+
     def get_df(self):
         """
         Retrieve all listings from the listings table as a pandas DataFrame.
