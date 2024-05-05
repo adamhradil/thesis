@@ -3,6 +3,8 @@ services:
     build: 
       dockerfile: webapp.Dockerfile
       context: .
+    environment:
+      TZ: Europe/Prague
     ports:
       - "5000:5000"
     volumes:
@@ -11,5 +13,7 @@ services:
     build:
       dockerfile: crawler.Dockerfile
       context: .
+    environment:
+      TZ: Europe/Prague
     volumes:
       - ./userdata:/usr/src/app/userdata

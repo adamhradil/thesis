@@ -166,7 +166,7 @@ class DatabaseWrapper:
         """
         if self.conn is None:
             return
-        sql = "DELETE FROM listings WHERE last_seen < ?"
+        sql = "DELETE FROM listings WHERE datetime(last_seen) < datetime(?, '-1 hour')"
         cur = self.conn.cursor()
         cur.execute(sql, (last_crawl_time,))
         deleted_ids = cur.fetchall()
