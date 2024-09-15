@@ -534,10 +534,10 @@ def run_spiders(json_output: str):
     spider_settings["estate_type"] = p.estate_type
     spider_settings["location"] = p.location
 
-    # crwler = process.create_crawler(SearchFlatsSpider)
+    crawler = process.create_crawler(SearchFlatsSpider)
     crawler2 = process.create_crawler(SrealitySpider)
 
-    # process.crawl(crawler, spider_settings)
+    process.crawl(crawler, spider_settings)
     process.crawl(crawler2, spider_settings)
     process.start()
 
